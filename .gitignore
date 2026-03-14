@@ -12,3 +12,8 @@
 /platform/query/build/
 /platform/query/build/classes/java/main/
 /platform/query/build/classes/java/test/
+/gradle/wrapper/gradle-wrapper.jar
+/platform/core/gradle/wrapper/gradle-wrapper.jar
+/platform/graphql/gradle/wrapper/gradle-wrapper.jar
+/platform/query/gradle/wrapper/gradle-wrapper.jar
+/.idea/
