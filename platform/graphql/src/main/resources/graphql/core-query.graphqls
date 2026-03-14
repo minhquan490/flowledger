@@ -1,0 +1,62 @@
+scalar JSON
+scalar Long
+
+type Query {
+  read(request: ReadRequest!): ReadResult!
+  search(request: SearchRequest!): SearchResult!
+}
+
+type Mutation {
+  mutate(request: MutationRequest!): MutationResult!
+}
+
+input ReadRequest {
+  model: String!
+  key: JSON!
+  fields: [String!]
+}
+
+input SearchRequest {
+  model: String!
+  filter: JSON
+  page: PageInput
+  sort: [SortInput!]
+  fields: [String!]
+}
+
+input PageInput {
+  offset: Int = 0
+  limit: Int = 50
+}
+
+input SortInput {
+  field: String!
+  direction: SortDirection = ASC
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+type ReadResult {
+  found: Boolean!
+  item: JSON
+}
+
+type SearchResult {
+  items: [JSON!]!
+  total: Long!
+}
+
+input MutationRequest {
+  model: String!
+  action: String!
+  key: JSON
+  data: JSON
+}
+
+type MutationResult {
+  success: Boolean!
+  item: JSON
+}

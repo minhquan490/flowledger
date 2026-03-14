@@ -1,0 +1,45 @@
+[versions]
+spring-boot = "4.0.3"
+spring-dependency-management = "1.1.7"
+java = "25"
+commons-lang3 = "3.20.0"
+blaze = "1.6.18"
+javassist = "3.30.2-GA"
+jakarta-persistence = "3.1.0"
+legacy-persistence = "2.2"
+hibernate = "6.6.0.Final"
+h2 = "2.2.224"
+graphql-scalars = "24.0"
+liquibase = "4.29.2"
+postgresql = "42.7.3"
+spring-tx = "6.2.3"
+
+[libraries]
+spring-boot-starter = { group = "org.springframework.boot", name = "spring-boot-starter", version.ref = "spring-boot" }
+spring-boot-starter-graphql = { group = "org.springframework.boot", name = "spring-boot-starter-graphql", version.ref = "spring-boot" }
+spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-boot-starter-test", version.ref = "spring-boot" }
+spring-boot-starter-web = { group = "org.springframework.boot", name = "spring-boot-starter-web", version.ref = "spring-boot" }
+spring-boot-starter-jdbc = { group = "org.springframework.boot", name = "spring-boot-starter-jdbc", version.ref = "spring-boot" }
+spring-boot-starter-data-jpa = { group = "org.springframework.boot", name = "spring-boot-starter-data-jpa", version.ref = "spring-boot" }
+spring-graphql-test = { group = "org.springframework.graphql", name = "spring-graphql-test", version = "2.0.2" }
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version = "6.0.3" }
+lombok = { group = "org.projectlombok", name = "lombok", version = "1.18.38" }
+commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commons-lang3" }
+blaze-core-api = { group = "com.blazebit", name = "blaze-persistence-core-api-jakarta", version.ref = "blaze" }
+blaze-entity-view-api = { group = "com.blazebit", name = "blaze-persistence-entity-view-api-jakarta", version.ref = "blaze" }
+blaze-core-impl = { group = "com.blazebit", name = "blaze-persistence-core-impl-jakarta", version.ref = "blaze" }
+blaze-integration-hibernate = { group = "com.blazebit", name = "blaze-persistence-integration-hibernate-6.2", version.ref = "blaze" }
+blaze-entity-view-impl = { group = "com.blazebit", name = "blaze-persistence-entity-view-impl-jakarta", version.ref = "blaze" }
+javassist = { group = "org.javassist", name = "javassist", version.ref = "javassist" }
+jakarta-persistence = { group = "jakarta.persistence", name = "jakarta.persistence-api", version.ref = "jakarta-persistence" }
+legacy-persistence = { group = "javax.persistence", name = "javax.persistence-api", version.ref = "legacy-persistence" }
+hibernate-core = { group = "org.hibernate.orm", name = "hibernate-core", version.ref = "hibernate" }
+h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
+graphql-scalars = { group = "com.graphql-java", name = "graphql-java-extended-scalars", version.ref = "graphql-scalars" }
+liquibase-core = { group = "org.liquibase", name = "liquibase-core", version.ref = "liquibase" }
+postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
+spring-tx = { group = "org.springframework", name = "spring-tx", version.ref = "spring-tx" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }

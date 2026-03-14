@@ -1,0 +1,557 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-seed-data
+      author: codex
+      context: seed
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          sqlCheck:
+            expectedResult: "1"
+            sql: "select 1"
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: email, value: "demo@flowledger.local" }
+              - column: { name: status, value: "ACTIVE" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: user_profiles
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: display_name, value: "Demo User" }
+              - column: { name: avatar_url, value: "https://example.local/avatar.png" }
+              - column: { name: locale, value: "en-US" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: user_preferences
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: timezone, value: "America/New_York" }
+              - column: { name: language, value: "en" }
+              - column: { name: theme, value: "light" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: user_devices
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: device_name, value: "Demo Phone" }
+              - column: { name: device_type, value: "MOBILE" }
+              - column: { name: last_seen_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: user_sessions
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: device_id, valueComputed: "(select id from user_devices where device_name = 'Demo Phone')" }
+              - column: { name: status, value: "ACTIVE" }
+              - column: { name: expires_at, valueDate: "2026-03-21T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: api_tokens
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: token_hash, value: "token-hash-demo" }
+              - column: { name: expires_at, valueDate: "2026-12-31T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: email_verifications
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: verification_code, value: "verify-1234" }
+              - column: { name: expires_at, valueDate: "2026-03-15T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: password_resets
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: reset_token, value: "reset-1234" }
+              - column: { name: expires_at, valueDate: "2026-03-15T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: mfa_methods
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: method_type, value: "TOTP" }
+              - column: { name: secret, value: "totp-secret" }
+              - column: { name: enabled, valueBoolean: true }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: oauth_accounts
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: provider, value: "google" }
+              - column: { name: provider_user_id, value: "google-1234" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: currencies
+            columns:
+              - column: { name: code, value: "USD" }
+              - column: { name: name, value: "US Dollar" }
+              - column: { name: symbol, value: "$" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: accounts
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: name, value: "Main Checking" }
+              - column: { name: account_type, value: "BANK" }
+              - column: { name: currency_code, value: "USD" }
+              - column: { name: opening_balance, valueNumeric: 1000.00 }
+              - column: { name: status, value: "ACTIVE" }
+              - column: { name: icon, value: "bank" }
+              - column: { name: color, value: "#1B7FBD" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: account_reconciliations
+            columns:
+              - column: { name: account_id, valueComputed: "(select id from accounts where name = 'Main Checking')" }
+              - column: { name: reconciled_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: notes, value: "Initial reconciliation" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: categories
+            columns:
+              - column: { name: name, value: "Groceries" }
+              - column: { name: icon, value: "cart" }
+              - column: { name: color, value: "#2E8B57" }
+              - column: { name: rules, value: "merchant contains grocery" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: tags
+            columns:
+              - column: { name: name, value: "Essential" }
+              - column: { name: color, value: "#FF8C00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: documents
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: file_name, value: "receipt.pdf" }
+              - column: { name: file_type, value: "application/pdf" }
+              - column: { name: storage_url, value: "s3://flowledger/receipt.pdf" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: transactions
+            columns:
+              - column: { name: account_id, valueComputed: "(select id from accounts where name = 'Main Checking')" }
+              - column: { name: category_id, valueComputed: "(select id from categories where name = 'Groceries')" }
+              - column: { name: amount, valueNumeric: 54.25 }
+              - column: { name: currency_code, value: "USD" }
+              - column: { name: transaction_type, value: "EXPENSE" }
+              - column: { name: status, value: "POSTED" }
+              - column: { name: description, value: "Weekly grocery run" }
+              - column: { name: location, value: "Market" }
+              - column: { name: occurred_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: transaction_splits
+            columns:
+              - column: { name: transaction_id, valueComputed: "(select id from transactions limit 1)" }
+              - column: { name: category_id, valueComputed: "(select id from categories where name = 'Groceries')" }
+              - column: { name: amount, valueNumeric: 54.25 }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: transaction_tags
+            columns:
+              - column: { name: transaction_id, valueComputed: "(select id from transactions limit 1)" }
+              - column: { name: tag_id, valueComputed: "(select id from tags where name = 'Essential')" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: transaction_attachments
+            columns:
+              - column: { name: transaction_id, valueComputed: "(select id from transactions limit 1)" }
+              - column: { name: document_id, valueComputed: "(select id from documents where file_name = 'receipt.pdf')" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: transaction_audit_logs
+            columns:
+              - column: { name: transaction_id, valueComputed: "(select id from transactions limit 1)" }
+              - column: { name: action, value: "CREATED" }
+              - column: { name: details, value: "Seed transaction created" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: transaction_comments
+            columns:
+              - column: { name: transaction_id, valueComputed: "(select id from transactions limit 1)" }
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: comment_text, value: "Looks good." }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: document_links
+            columns:
+              - column: { name: document_id, valueComputed: "(select id from documents where file_name = 'receipt.pdf')" }
+              - column: { name: linked_type, value: "transaction" }
+              - column: { name: linked_id, valueComputed: "(select id from transactions limit 1)" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: budgets
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: name, value: "Monthly Groceries" }
+              - column: { name: category_id, valueComputed: "(select id from categories where name = 'Groceries')" }
+              - column: { name: account_id, valueComputed: "(select id from accounts where name = 'Main Checking')" }
+              - column: { name: amount, valueNumeric: 400.00 }
+              - column: { name: period_type, value: "MONTHLY" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: budget_periods
+            columns:
+              - column: { name: budget_id, valueComputed: "(select id from budgets where name = 'Monthly Groceries')" }
+              - column: { name: period_start, valueDate: "2026-03-01" }
+              - column: { name: period_end, valueDate: "2026-03-31" }
+              - column: { name: amount, valueNumeric: 400.00 }
+              - column: { name: rollover_amount, valueNumeric: 0.00 }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: budget_history
+            columns:
+              - column: { name: budget_id, valueComputed: "(select id from budgets where name = 'Monthly Groceries')" }
+              - column: { name: snapshot_date, valueDate: "2026-03-14" }
+              - column: { name: spent_amount, valueNumeric: 54.25 }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: budget_alerts
+            columns:
+              - column: { name: budget_id, valueComputed: "(select id from budgets where name = 'Monthly Groceries')" }
+              - column: { name: alert_type, value: "THRESHOLD" }
+              - column: { name: threshold, valueNumeric: 350.00 }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: saving_goals
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: account_id, valueComputed: "(select id from accounts where name = 'Main Checking')" }
+              - column: { name: name, value: "Emergency Fund" }
+              - column: { name: target_amount, valueNumeric: 2000.00 }
+              - column: { name: target_date, valueDate: "2026-12-31" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: goal_contributions
+            columns:
+              - column: { name: saving_goal_id, valueComputed: "(select id from saving_goals where name = 'Emergency Fund')" }
+              - column: { name: amount, valueNumeric: 100.00 }
+              - column: { name: contributed_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: goal_reminders
+            columns:
+              - column: { name: saving_goal_id, valueComputed: "(select id from saving_goals where name = 'Emergency Fund')" }
+              - column: { name: remind_at, valueDate: "2026-04-01T09:00:00" }
+              - column: { name: channel, value: "EMAIL" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: recurring_rules
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: name, value: "Gym Membership" }
+              - column: { name: schedule, value: "MONTHLY" }
+              - column: { name: status, value: "ACTIVE" }
+              - column: { name: next_run_at, valueDate: "2026-04-01T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: recurring_occurrences
+            columns:
+              - column: { name: recurring_rule_id, valueComputed: "(select id from recurring_rules where name = 'Gym Membership')" }
+              - column: { name: scheduled_at, valueDate: "2026-04-01T00:00:00" }
+              - column: { name: status, value: "PENDING" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: transfers
+            columns:
+              - column: { name: from_account_id, valueComputed: "(select id from accounts where name = 'Main Checking')" }
+              - column: { name: to_account_id, valueComputed: "(select id from accounts where name = 'Main Checking')" }
+              - column: { name: amount, valueNumeric: 25.00 }
+              - column: { name: fee_amount, valueNumeric: 1.00 }
+              - column: { name: status, value: "COMPLETED" }
+              - column: { name: scheduled_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: exchange_rates
+            columns:
+              - column: { name: base_currency_code, value: "USD" }
+              - column: { name: quote_currency_code, value: "USD" }
+              - column: { name: rate, valueNumeric: 1.0 }
+              - column: { name: rate_date, valueDate: "2026-03-14" }
+              - column: { name: source, value: "manual" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: analytics_snapshots
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: snapshot_date, valueDate: "2026-03-14" }
+              - column: { name: payload, value: "{\"netWorth\": 1000}" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: financial_health_scores
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: score_date, valueDate: "2026-03-14" }
+              - column: { name: score, valueNumeric: 82.5 }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: spending_anomalies
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: detected_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: description, value: "Unusual high grocery spend" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: top_expenses
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: category_id, valueComputed: "(select id from categories where name = 'Groceries')" }
+              - column: { name: amount, valueNumeric: 54.25 }
+              - column: { name: period_start, valueDate: "2026-03-01" }
+              - column: { name: period_end, valueDate: "2026-03-31" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: reports
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: report_type, value: "SUMMARY" }
+              - column: { name: parameters, value: "{\"range\":\"monthly\"}" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: report_exports
+            columns:
+              - column: { name: report_id, valueComputed: "(select id from reports where report_type = 'SUMMARY')" }
+              - column: { name: export_type, value: "PDF" }
+              - column: { name: file_url, value: "s3://flowledger/report.pdf" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: import_jobs
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: source_type, value: "CSV" }
+              - column: { name: status, value: "COMPLETED" }
+              - column: { name: started_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: finished_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: import_files
+            columns:
+              - column: { name: import_job_id, valueComputed: "(select id from import_jobs where source_type = 'CSV')" }
+              - column: { name: file_name, value: "bank.csv" }
+              - column: { name: file_type, value: "text/csv" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: export_jobs
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: export_type, value: "CSV" }
+              - column: { name: status, value: "COMPLETED" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: backups
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: backup_type, value: "FULL" }
+              - column: { name: storage_url, value: "s3://flowledger/backup.zip" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: notifications
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: notification_type, value: "BUDGET_ALERT" }
+              - column: { name: message, value: "Budget threshold reached." }
+              - column: { name: status, value: "SENT" }
+              - column: { name: sent_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: notification_preferences
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: channel, value: "EMAIL" }
+              - column: { name: enabled, valueBoolean: true }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: saved_filters
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: name, value: "Recent Groceries" }
+              - column: { name: query, value: "{\"category\":\"Groceries\"}" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: query_history
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: query, value: "{\"status\":\"POSTED\"}" }
+              - column: { name: executed_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: automation_rules
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: name, value: "Auto Tag Groceries" }
+              - column: { name: rule_definition, value: "{\"category\":\"Groceries\"}" }
+              - column: { name: priority, valueNumeric: 1 }
+              - column: { name: enabled, valueBoolean: true }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: automation_rule_actions
+            columns:
+              - column: { name: automation_rule_id, valueComputed: "(select id from automation_rules where name = 'Auto Tag Groceries')" }
+              - column: { name: action_type, value: "TAG" }
+              - column: { name: action_payload, value: "{\"tag\":\"Essential\"}" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: automation_rule_tests
+            columns:
+              - column: { name: automation_rule_id, valueComputed: "(select id from automation_rules where name = 'Auto Tag Groceries')" }
+              - column: { name: test_payload, value: "{\"amount\":54.25}" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: dashboards
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: name, value: "Main Dashboard" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: dashboard_widgets
+            columns:
+              - column: { name: dashboard_id, valueComputed: "(select id from dashboards where name = 'Main Dashboard')" }
+              - column: { name: widget_type, value: "BALANCE_CHART" }
+              - column: { name: config, value: "{\"period\":\"monthly\"}" }
+              - column: { name: position, valueNumeric: 1 }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: shared_accounts
+            columns:
+              - column: { name: account_id, valueComputed: "(select id from accounts where name = 'Main Checking')" }
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: permission_level, value: "OWNER" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: shared_budgets
+            columns:
+              - column: { name: budget_id, valueComputed: "(select id from budgets where name = 'Monthly Groceries')" }
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: permission_level, value: "OWNER" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: permissions
+            columns:
+              - column: { name: permission_key, value: "ACCOUNT_VIEW" }
+              - column: { name: description, value: "View accounts" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: roles
+            columns:
+              - column: { name: role_key, value: "OWNER" }
+              - column: { name: description, value: "Owner role" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: user_roles
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: role_id, valueComputed: "(select id from roles where role_key = 'OWNER')" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: api_access_controls
+            columns:
+              - column: { name: api_token_id, valueComputed: "(select id from api_tokens limit 1)" }
+              - column: { name: permission_key, value: "ACCOUNT_VIEW" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: activity_logs
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: activity_type, value: "LOGIN" }
+              - column: { name: details, value: "User logged in" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: login_activity
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: status, value: "SUCCESS" }
+              - column: { name: ip_address, value: "127.0.0.1" }
+              - column: { name: logged_in_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: security_events
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: event_type, value: "PASSWORD_RESET" }
+              - column: { name: details, value: "Password reset requested" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: audit_logs
+            columns:
+              - column: { name: actor_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: action, value: "ACCOUNT_CREATED" }
+              - column: { name: target_type, value: "account" }
+              - column: { name: target_id, valueComputed: "(select id from accounts where name = 'Main Checking')" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }
+        - insert:
+            tableName: privacy_settings
+            columns:
+              - column: { name: user_id, valueComputed: "(select id from users where email = 'demo@flowledger.local')" }
+              - column: { name: setting_key, value: "shareData" }
+              - column: { name: setting_value, value: "false" }
+              - column: { name: created_at, valueDate: "2026-03-14T00:00:00" }
+              - column: { name: updated_at, valueDate: "2026-03-14T00:00:00" }

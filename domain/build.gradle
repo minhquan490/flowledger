@@ -1,0 +1,37 @@
+plugins {
+  id 'java-library'
+}
+
+description = 'domain'
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
+  }
+}
+
+configurations {
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
+}
+
+dependencies {
+  api project(':platform:graphql')
+  api libs.jakarta.persistence
+
+  compileOnly libs.blaze.entity.view.api
+
+  compileOnly libs.lombok
+  annotationProcessor libs.lombok
+  testImplementation libs.spring.boot.starter.test
+  testImplementation libs.spring.graphql.test
+  testImplementation libs.spring.boot.starter.web
+  testCompileOnly libs.lombok
+  testAnnotationProcessor libs.lombok
+  testRuntimeOnly libs.junit.platform.launcher
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
+}

@@ -1,0 +1,115 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+max_line_length = 120
+tab_width = 2
+ij_continuation_indent_size = 4
+ij_formatter_off_tag = @formatter:off
+ij_formatter_on_tag = @formatter:on
+ij_formatter_tags_enabled = true
+ij_smart_tabs = false
+ij_wrap_on_typing = false
+
+# ------------------------
+# Java
+# ------------------------
+[*.java]
+
+ij_java_align_multiline_parameters = true
+ij_java_align_multiline_for = true
+ij_java_align_types_in_multi_catch = true
+
+ij_java_blank_lines_after_imports = 1
+ij_java_blank_lines_after_package = 1
+ij_java_blank_lines_around_class = 1
+ij_java_blank_lines_around_method = 1
+ij_java_blank_lines_around_method_in_interface = 1
+
+ij_java_block_brace_style = end_of_line
+ij_java_class_brace_style = end_of_line
+ij_java_method_brace_style = end_of_line
+
+ij_java_class_count_to_use_import_on_demand = 99999
+ij_java_names_count_to_use_import_on_demand = 9999999
+ij_java_use_single_class_imports = true
+
+ij_java_indent_case_from_switch = true
+ij_java_keep_line_breaks = true
+ij_java_keep_first_column_comment = true
+ij_java_keep_control_statement_in_one_line = true
+
+ij_java_space_after_colon = true
+ij_java_space_after_comma = true
+ij_java_space_before_if_parentheses = true
+ij_java_space_before_for_parentheses = true
+ij_java_space_before_while_parentheses = true
+ij_java_space_before_switch_parentheses = true
+
+ij_java_spaces_around_assignment_operators = true
+ij_java_spaces_around_logical_operators = true
+ij_java_spaces_around_equality_operators = true
+ij_java_spaces_around_relational_operators = true
+ij_java_spaces_around_additive_operators = true
+ij_java_spaces_around_multiplicative_operators = true
+
+ij_java_keep_blank_lines_in_code = 2
+ij_java_keep_blank_lines_in_declarations = 2
+
+ij_java_method_parameters_wrap = off
+ij_java_call_parameters_wrap = off
+ij_java_binary_operation_wrap = off
+
+ij_java_wrap_comments = false
+ij_java_wrap_long_lines = false
+
+# ------------------------
+# YAML
+# ------------------------
+[{*.yaml,*.yml}]
+indent_size = 2
+ij_yaml_align_values_properties = do_not_align
+ij_yaml_autoinsert_sequence_marker = true
+ij_yaml_block_mapping_on_new_line = false
+ij_yaml_indent_sequence_value = true
+ij_yaml_keep_line_breaks = true
+ij_yaml_line_comment_add_space = false
+ij_yaml_sequence_on_new_line = false
+ij_yaml_space_before_colon = false
+ij_yaml_spaces_within_braces = true
+ij_yaml_spaces_within_brackets = true
+
+# ------------------------
+# Gradle (Groovy)
+# ------------------------
+[*.gradle]
+indent_size = 2
+indent_style = space
+tab_width = 2
+max_line_length = 120
+
+# ------------------------
+# Gradle Kotlin DSL
+# ------------------------
+[*.gradle.kts]
+indent_size = 2
+indent_style = space
+tab_width = 2
+max_line_length = 120
+
+# ------------------------
+# JSON
+# ------------------------
+[*.json]
+indent_size = 2
+
+# ------------------------
+# Markdown
+# ------------------------
+[*.md]
+max_line_length = off
+trim_trailing_whitespace = false

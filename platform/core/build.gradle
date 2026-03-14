@@ -1,0 +1,42 @@
+plugins {
+  id 'java-library'
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.spring.dependency.management)
+}
+
+description = 'core'
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
+  }
+}
+
+configurations {
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
+}
+
+dependencies {
+  api libs.spring.boot.starter
+
+  compileOnly libs.lombok
+  annotationProcessor libs.lombok
+
+  testImplementation libs.spring.boot.starter.test
+
+  testRuntimeOnly libs.junit.platform.launcher
+}
+
+bootJar {
+  enabled = false
+}
+
+jar {
+  enabled = true
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
+}

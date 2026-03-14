@@ -1,0 +1,14 @@
+# Project exclude paths
+/.gradle/
+/build/
+/db-migration/build/
+/db-migration/build/classes/java/main/
+/domain/build/
+/domain/build/classes/java/main/
+/domain/build/classes/java/test/
+/platform/graphql/build/
+/platform/graphql/build/classes/java/main/
+/platform/graphql/build/classes/java/test/
+/platform/query/build/
+/platform/query/build/classes/java/main/
+/platform/query/build/classes/java/test/

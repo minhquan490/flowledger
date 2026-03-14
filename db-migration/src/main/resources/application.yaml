@@ -1,0 +1,10 @@
+spring:
+  main:
+    web-application-type: none
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/flowledger}
+    username: ${DB_USERNAME:flowledger}
+    password: ${DB_PASSWORD:flowledger}
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml

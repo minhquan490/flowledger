@@ -1,0 +1,50 @@
+plugins {
+  id 'java-library'
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.spring.dependency.management)
+}
+
+description = 'platform-graphql'
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
+  }
+}
+
+configurations {
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
+}
+
+dependencies {
+  api libs.spring.boot.starter
+  api libs.spring.boot.starter.graphql
+  api libs.graphql.scalars
+  api project(':platform:query')
+  implementation libs.spring.tx
+
+  compileOnly libs.lombok
+  annotationProcessor libs.lombok
+
+  testImplementation libs.spring.boot.starter.test
+  testImplementation libs.spring.graphql.test
+  testImplementation libs.spring.boot.starter.web
+  testCompileOnly libs.lombok
+  testAnnotationProcessor libs.lombok
+
+  testRuntimeOnly libs.junit.platform.launcher
+}
+
+bootJar {
+  enabled = false
+}
+
+jar {
+  enabled = true
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
+}
