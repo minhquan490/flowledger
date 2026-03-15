@@ -4,6 +4,7 @@ import com.blazebit.persistence.view.CreatableEntityView;
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.domain.role.validator.RbacRoleWriteViewPayloadValidator;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import java.time.Instant;

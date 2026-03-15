@@ -42,6 +42,12 @@ import java.util.List;
 public class CoreGraphQlAutoConfiguration {
 
   @Configuration
+  @Import({GraphQlQueryController.class})
+  static class ControllerDeclarator {
+
+  }
+
+  @Configuration
   @Import({
       CreateGraphQLMutationRequestValidator.class,
       UpdateGraphQLMutationRequestValidator.class,
@@ -109,21 +115,6 @@ public class CoreGraphQlAutoConfiguration {
       List<GraphQlMutationCallback> callbacks
   ) {
     return new GraphQlMutationService(handlerRegistry, callbacks);
-  }
-
-  /**
-   * Creates the query controller.
-   *
-   * @param queryService the query service
-   * @param mutationService the mutation service
-   * @return the controller
-   */
-  @Bean
-  public GraphQlQueryController graphQlQueryController(
-      GraphQlQueryService queryService,
-      GraphQlMutationService mutationService
-  ) {
-    return new GraphQlQueryController(queryService, mutationService);
   }
 
   /**

@@ -4,6 +4,7 @@ import com.blazebit.persistence.view.CreatableEntityView;
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.goal.entity.GoalReminder;
+import io.flowledger.domain.goal.validator.GoalReminderWriteViewPayloadValidator;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;

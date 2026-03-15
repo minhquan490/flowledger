@@ -4,6 +4,7 @@ import com.blazebit.persistence.view.CreatableEntityView;
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.goal.entity.GoalContribution;
+import io.flowledger.domain.goal.validator.GoalContributionWriteViewPayloadValidator;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.math.BigDecimal;
