@@ -41,7 +41,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface GraphQlModel {
 
   /**
-   * Returns the model name used in GraphQL requests.
+   * Returns the model name (resource name) used in GraphQL requests.
    *
    * @return the model name
    */

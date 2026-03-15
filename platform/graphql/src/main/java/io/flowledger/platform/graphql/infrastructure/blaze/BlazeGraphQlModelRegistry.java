@@ -8,6 +8,7 @@ import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.query.blaze.BlazeViewLoader;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
@@ -36,7 +37,7 @@ public class BlazeGraphQlModelRegistry {
       ApplicationContext applicationContext
   ) {
     this.applicationContext = applicationContext;
-    this.viewsByModel = loadViews(blazeViewLoader, applicationContext);
+    this.viewsByModel = Collections.unmodifiableMap(loadViews(blazeViewLoader, applicationContext));
   }
 
   /**

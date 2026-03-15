@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import jakarta.persistence.PersistenceContext;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +32,10 @@ import org.springframework.stereotype.Component;
 public class BlazeQueryBuilder {
 
   private final CriteriaBuilderFactory criteriaBuilderFactory;
-  private final EntityManager entityManager;
   private final List<BlazeQueryBuilderExtension> extensions;
+
+  @PersistenceContext
+  private EntityManager entityManager;
 
   /**
    * Creates a {@link CriteriaBuilder} for the given entity type.

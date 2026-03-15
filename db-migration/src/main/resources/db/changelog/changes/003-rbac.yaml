@@ -1,0 +1,319 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-rbac-schema
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          sqlCheck:
+            expectedResult: "1"
+            sql: "select 1"
+      changes:
+        - createTable:
+            tableName: rbac_resources
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: description
+                  type: varchar(500)
+              - column:
+                  name: system_managed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: rbac_roles
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: name
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_default
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: system_managed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: rbac_user_roles
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: rbac_role_resource_permissions
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: role_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: resource_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: action
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: allowed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: system_managed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: rbac_role_field_permissions
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: role_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: resource_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: field_name
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: can_read
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: can_write
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: system_managed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: rbac_role_row_conditions
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: role_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: resource_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: condition_json
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: system_managed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: rbac_user_roles
+            columnNames: user_id, role_id
+            constraintName: uq_rbac_user_roles
+        - addUniqueConstraint:
+            tableName: rbac_role_resource_permissions
+            columnNames: role_id, resource_id, action
+            constraintName: uq_rbac_role_resource_action
+        - addUniqueConstraint:
+            tableName: rbac_role_field_permissions
+            columnNames: role_id, resource_id, field_name
+            constraintName: uq_rbac_role_field
+        - addUniqueConstraint:
+            tableName: rbac_role_row_conditions
+            columnNames: role_id, resource_id
+            constraintName: uq_rbac_role_row
+        - createIndex:
+            tableName: rbac_role_resource_permissions
+            indexName: idx_rbac_role_resource_action
+            columns:
+              - column:
+                  name: role_id
+              - column:
+                  name: resource_id
+              - column:
+                  name: action
+        - createIndex:
+            tableName: rbac_role_field_permissions
+            indexName: idx_rbac_role_field
+            columns:
+              - column:
+                  name: role_id
+              - column:
+                  name: resource_id
+        - createIndex:
+            tableName: rbac_role_row_conditions
+            indexName: idx_rbac_role_row
+            columns:
+              - column:
+                  name: role_id
+              - column:
+                  name: resource_id
+        - createIndex:
+            tableName: rbac_user_roles
+            indexName: idx_rbac_user_roles
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: role_id
+        - addDefaultValue:
+            tableName: rbac_resources
+            columnName: id
+            defaultValueComputed: "uuidv7()"
+        - addDefaultValue:
+            tableName: rbac_roles
+            columnName: id
+            defaultValueComputed: "uuidv7()"
+        - addDefaultValue:
+            tableName: rbac_user_roles
+            columnName: id
+            defaultValueComputed: "uuidv7()"
+        - addDefaultValue:
+            tableName: rbac_role_resource_permissions
+            columnName: id
+            defaultValueComputed: "uuidv7()"
+        - addDefaultValue:
+            tableName: rbac_role_field_permissions
+            columnName: id
+            defaultValueComputed: "uuidv7()"
+        - addDefaultValue:
+            tableName: rbac_role_row_conditions
+            columnName: id
+            defaultValueComputed: "uuidv7()"

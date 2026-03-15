@@ -15,4 +15,14 @@ public class GraphQlInternalException extends QuerySystemException {
   public GraphQlInternalException(String message) {
     super(message);
   }
+
+  /**
+   * Creates a new internal exception.
+   *
+   * @param message the error message
+   * @param cause the cause of error
+   */
+  public GraphQlInternalException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

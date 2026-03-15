@@ -59,7 +59,7 @@ public class BlazeGraphQlMutationHandler implements GraphQlMutationHandler {
   public GraphQlMutationResult mutate(GraphQlMutationRequest request) {
     BlazeGraphQlViewDefinition definition = modelRegistry.viewFor(request.model());
     GraphQLMutationPolicy mutationPolicy = definition.resolveMutationPolicy();
-    mutationPolicy.validateWriteAccess(request);
+    mutationPolicy.validateWriteAccess(definition.model(), request);
     return switch (request.action()) {
       case GraphQlMutationService.ACTION_CREATE -> create(definition, request);
       case GraphQlMutationService.ACTION_UPDATE -> update(definition, request);

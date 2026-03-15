@@ -4,7 +4,7 @@ import io.flowledger.platform.graphql.domain.GraphQlMutationRequest;
 
 public class PermitsAllGraphQLMutationPolicy implements GraphQLMutationPolicy {
   @Override
-  public void validateWriteAccess(GraphQlMutationRequest request) {
+  public void validateWriteAccess(String resource, GraphQlMutationRequest request) {
     // do not thing
   }
 }

@@ -10,7 +10,8 @@ public interface GraphQLMutationPolicy {
   /**
    * Validates whether the caller can perform the mutation request.
    *
+   * @param resource the resource name defined in {@link io.flowledger.platform.graphql.domain.GraphQlModel#value()}
    * @param request the mutation request
    */
-  void validateWriteAccess(GraphQlMutationRequest request);
+  void validateWriteAccess(String resource, GraphQlMutationRequest request);
 }

@@ -13,6 +13,7 @@ graphql-scalars = "24.0"
 liquibase = "4.29.2"
 postgresql = "42.7.3"
 spring-tx = "6.2.3"
+jackson = "2.17.2"
 
 [libraries]
 spring-boot-starter = { group = "org.springframework.boot", name = "spring-boot-starter", version.ref = "spring-boot" }
@@ -39,6 +40,8 @@ graphql-scalars = { group = "com.graphql-java", name = "graphql-java-extended-sc
 liquibase-core = { group = "org.liquibase", name = "liquibase-core", version.ref = "liquibase" }
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
 spring-tx = { group = "org.springframework", name = "spring-tx", version.ref = "spring-tx" }
+jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

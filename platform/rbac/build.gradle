@@ -1,0 +1,47 @@
+plugins {
+  id 'java-library'
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.spring.dependency.management)
+}
+
+description = 'platform-rbac'
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
+  }
+}
+
+configurations {
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
+}
+
+dependencies {
+  api project(":platform:graphql")
+  api project(':platform:query')
+  api libs.spring.boot.starter
+  implementation libs.spring.tx
+  implementation libs.jackson.core
+  implementation libs.jackson.databind
+
+  compileOnly libs.lombok
+  annotationProcessor libs.lombok
+
+  testImplementation libs.spring.boot.starter.test
+
+  testRuntimeOnly libs.junit.platform.launcher
+}
+
+bootJar {
+  enabled = false
+}
+
+jar {
+  enabled = true
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
+}

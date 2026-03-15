@@ -17,3 +17,4 @@
 /platform/graphql/gradle/wrapper/gradle-wrapper.jar
 /platform/query/gradle/wrapper/gradle-wrapper.jar
 /.idea/
+/platform/rbac/build/
