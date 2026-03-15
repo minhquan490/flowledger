@@ -18,7 +18,8 @@ configurations {
 
 dependencies {
   api project(':platform:graphql')
-  api libs.jakarta.persistence
+  implementation libs.jakarta.persistence
+  implementation project(":platform:rbac")
 
   compileOnly libs.blaze.entity.view.api
 

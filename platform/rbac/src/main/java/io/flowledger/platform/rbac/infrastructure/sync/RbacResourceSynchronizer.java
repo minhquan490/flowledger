@@ -1,13 +1,11 @@
 package io.flowledger.platform.rbac.infrastructure.sync;
 
-import io.flowledger.domain.identity.aggregate.User;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlModelRegistry;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlViewDefinition;
 import io.flowledger.platform.rbac.domain.RbacAction;
 import io.flowledger.platform.rbac.domain.entity.RbacResourceEntity;
 import io.flowledger.platform.rbac.domain.entity.RbacRoleEntity;
 import io.flowledger.platform.rbac.domain.entity.RbacRoleResourcePermissionEntity;
-import io.flowledger.platform.rbac.domain.entity.RbacUserRoleEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.time.Instant;
@@ -34,15 +32,13 @@ public class RbacResourceSynchronizer {
   private static final String DEFAULT_ROLE_NAME = "Default Role";
   private static final String DEFAULT_ADMIN_ROLE_CODE = "super-admin";
   private static final String DEFAULT_ADMIN_ROLE_NAME = "Super Admin";
-  private static final String DEFAULT_ADMIN_EMAIL = "admin@flowledger.local";
-  private static final String DEFAULT_ADMIN_STATUS = "ACTIVE";
   private static final int BATCH_SIZE = 500;
 
   private final BlazeGraphQlModelRegistry modelRegistry;
   private final EntityManager entityManager;
 
   /**
-   * Synchronizes resources, default roles, and the default administrator account.
+   * Synchronizes resources, default roles, and administrator permissions.
    */
   @Transactional
   public void synchronize() {
@@ -50,8 +46,6 @@ public class RbacResourceSynchronizer {
     ensureDefaultRole();
     RbacRoleEntity adminRole = ensureAdminRole();
     ensureAdminRolePermissions(adminRole);
-    User adminUser = ensureAdminUser();
-    ensureAdminUserRole(adminUser, adminRole);
   }
 
   /**
@@ -329,83 +323,6 @@ public class RbacResourceSynchronizer {
     permission.setAllowed(true);
     permission.setUpdatedAt(now);
     entityManager.merge(permission);
-  }
-
-  /**
-   * Ensures the administrator user account exists.
-   *
-   * @return the administrator user
-   */
-  private User ensureAdminUser() {
-    TypedQuery<User> query = entityManager.createQuery(
-        "select u from User u where u.email = :email",
-        User.class
-    );
-    query.setParameter("email", DEFAULT_ADMIN_EMAIL);
-    List<User> results = query.getResultList();
-    if (!results.isEmpty()) {
-      return results.getFirst();
-    }
-    return persistAdminUser();
-  }
-
-  /**
-   * Persists the administrator user account.
-   *
-   * @return the newly persisted administrator user
-   */
-  private User persistAdminUser() {
-    Instant now = Instant.now();
-    User user = new User();
-    user.setEmail(DEFAULT_ADMIN_EMAIL);
-    user.setStatus(DEFAULT_ADMIN_STATUS);
-    user.setCreatedAt(now);
-    user.setUpdatedAt(now);
-    entityManager.persist(user);
-    flushAndRefresh(user);
-    return user;
-  }
-
-  /**
-   * Ensures the administrator user is assigned to the administrator role.
-   *
-   * @param adminUser the administrator user
-   * @param adminRole the administrator role
-   */
-  private void ensureAdminUserRole(User adminUser, RbacRoleEntity adminRole) {
-    if (adminUser == null || adminUser.getId() == null) {
-      return;
-    }
-    if (adminRole == null || adminRole.getId() == null) {
-      return;
-    }
-    TypedQuery<RbacUserRoleEntity> query = entityManager.createQuery(
-        "select ur from RbacUserRoleEntity ur "
-            + "where ur.userId = :userId and ur.roleId = :roleId",
-        RbacUserRoleEntity.class
-    );
-    query.setParameter("userId", adminUser.getId());
-    query.setParameter("roleId", adminRole.getId());
-    if (!query.getResultList().isEmpty()) {
-      return;
-    }
-    persistAdminUserRole(adminUser.getId(), adminRole.getId());
-  }
-
-  /**
-   * Persists an administrator role assignment for the administrator user.
-   *
-   * @param userId the user id
-   * @param roleId the role id
-   */
-  private void persistAdminUserRole(UUID userId, UUID roleId) {
-    Instant now = Instant.now();
-    RbacUserRoleEntity assignment = new RbacUserRoleEntity();
-    assignment.setUserId(userId);
-    assignment.setRoleId(roleId);
-    assignment.setCreatedAt(now);
-    assignment.setUpdatedAt(now);
-    entityManager.persist(assignment);
   }
 
   /**

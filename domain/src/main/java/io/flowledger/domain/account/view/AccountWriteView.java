@@ -5,6 +5,8 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.account.aggregate.Account;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -15,7 +17,7 @@ import java.util.UUID;
 @EntityView(Account.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("accountWrite")
+@GraphQlModel(value = "accountWrite", mutationPolicy = RbacGraphQLMutationPolicy.class)
 public interface AccountWriteView extends AccountView {
 
   /**

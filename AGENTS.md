@@ -18,6 +18,7 @@
 - All migration files must be safe (add on failed mark ran)
 - When change code, must update javadoc
 - When save any entities does not set id, database will do it
+- Ensure all new codes can be compiled
 
 ---
 
