@@ -5,7 +5,7 @@ import io.flowledger.platform.graphql.application.GraphQLMutationPolicy;
 import io.flowledger.platform.graphql.domain.GraphQlMutationRequest;
 import io.flowledger.platform.rbac.application.service.RbacFieldPermissionService;
 import io.flowledger.platform.rbac.application.service.RbacPermissionService;
-import io.flowledger.platform.rbac.domain.RbacAction;
+import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 import java.util.List;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;

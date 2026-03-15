@@ -5,9 +5,9 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.identity.aggregate.User;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * Write-capable view for users.
@@ -15,16 +15,12 @@ import java.util.UUID;
 @EntityView(User.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("userWrite")
+@GraphQlModel(
+    value = "userWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = UserWriteViewPayloadValidator.class
+)
 public interface UserWriteView extends UserView {
-
-  /**
-   * Sets the user identifier.
-   *
-   * @param id the user id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the user email address.
    *

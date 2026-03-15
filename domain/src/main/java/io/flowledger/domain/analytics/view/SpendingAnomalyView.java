@@ -3,6 +3,7 @@ package io.flowledger.domain.analytics.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.analytics.aggregate.SpendingAnomaly;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
  * GraphQL view for spending anomalies.
  */
 @EntityView(SpendingAnomaly.class)
-@GraphQlModel("spendingAnomaly")
+@GraphQlModel(value = "spendingAnomaly", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface SpendingAnomalyView {
 
   /**

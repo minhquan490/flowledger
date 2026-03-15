@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.identity.entity.UserSession;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -15,16 +16,12 @@ import java.util.UUID;
 @EntityView(UserSession.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("userSessionWrite")
+@GraphQlModel(
+    value = "userSessionWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = UserSessionWriteViewPayloadValidator.class
+)
 public interface UserSessionWriteView extends UserSessionView {
-
-  /**
-   * Sets the session identifier.
-   *
-   * @param id the session id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the user identifier.
    *

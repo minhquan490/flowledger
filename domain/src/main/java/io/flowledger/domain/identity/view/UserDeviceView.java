@@ -3,6 +3,7 @@ package io.flowledger.domain.identity.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.identity.entity.UserDevice;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
  * GraphQL view for user devices.
  */
 @EntityView(UserDevice.class)
-@GraphQlModel("userDevice")
+@GraphQlModel(value = "userDevice", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface UserDeviceView {
 
   /**

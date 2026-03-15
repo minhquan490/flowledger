@@ -3,8 +3,8 @@ package io.flowledger.platform.rbac.application.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.flowledger.platform.graphql.application.GraphQlInternalException;
-import io.flowledger.platform.rbac.domain.entity.RbacResourceEntity;
-import io.flowledger.platform.rbac.domain.entity.RbacRoleEntity;
+import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
+import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -38,17 +38,17 @@ public class RbacRowFilterService {
    * @return merged row filters
    */
   public Map<String, Object> resolveRowFilters(String resource) {
-    RbacResourceEntity resourceEntity = findResource(resource);
+    RbacResource resourceEntity = findResource(resource);
     if (resourceEntity == null) {
       return Map.of();
     }
-    List<RbacRoleEntity> roles = roleResolver.resolveRoles();
+    List<RbacRole> roles = roleResolver.resolveRoles();
     if (roles.isEmpty()) {
       return Map.of();
     }
-    List<UUID> roleIds = roles.stream().map(RbacRoleEntity::getId).toList();
+    List<UUID> roleIds = roles.stream().map(RbacRole::getId).toList();
     TypedQuery<String> query = entityManager.createQuery(
-        "select r.conditionJson from RbacRoleRowConditionEntity r "
+        "select r.conditionJson from RbacRoleRowCondition r "
             + "where r.roleId in :roleIds and r.resourceId = :resourceId",
         String.class
     );
@@ -89,13 +89,13 @@ public class RbacRowFilterService {
    * @param resource the resource name
    * @return the resource entity or null when not found
    */
-  private RbacResourceEntity findResource(String resource) {
-    TypedQuery<RbacResourceEntity> query = entityManager.createQuery(
-        "select r from RbacResourceEntity r where r.name = :name",
-        RbacResourceEntity.class
+  private RbacResource findResource(String resource) {
+    TypedQuery<RbacResource> query = entityManager.createQuery(
+        "select r from RbacResource r where r.name = :name",
+        RbacResource.class
     );
     query.setParameter("name", resource);
-    List<RbacResourceEntity> results = query.getResultList();
+    List<RbacResource> results = query.getResultList();
     if (results.isEmpty()) {
       return null;
     }

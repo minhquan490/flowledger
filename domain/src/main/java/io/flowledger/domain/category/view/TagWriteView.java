@@ -5,8 +5,8 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.category.aggregate.Tag;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * Write-capable view for tags.
@@ -14,16 +14,12 @@ import java.util.UUID;
 @EntityView(Tag.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("tagWrite")
+@GraphQlModel(
+    value = "tagWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = TagWriteViewPayloadValidator.class
+)
 public interface TagWriteView extends TagView {
-
-  /**
-   * Sets the tag identifier.
-   *
-   * @param id the tag id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the tag name.
    *

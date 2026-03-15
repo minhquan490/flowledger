@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.identity.entity.ApiToken;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,16 +15,12 @@ import java.util.UUID;
 @EntityView(ApiToken.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("apiTokenWrite")
+@GraphQlModel(
+    value = "apiTokenWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = ApiTokenWriteViewPayloadValidator.class
+)
 public interface ApiTokenWriteView extends ApiTokenView {
-
-  /**
-   * Sets the token identifier.
-   *
-   * @param id the token id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the user identifier.
    *

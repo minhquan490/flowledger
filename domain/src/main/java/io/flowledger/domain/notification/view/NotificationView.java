@@ -3,6 +3,7 @@ package io.flowledger.domain.notification.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.notification.aggregate.Notification;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
  * GraphQL view for notifications.
  */
 @EntityView(Notification.class)
-@GraphQlModel("notification")
+@GraphQlModel(value = "notification", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface NotificationView {
 
   /**

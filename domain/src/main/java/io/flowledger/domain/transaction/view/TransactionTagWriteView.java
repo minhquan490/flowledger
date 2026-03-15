@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.transaction.entity.TransactionTag;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,16 +15,12 @@ import java.util.UUID;
 @EntityView(TransactionTag.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("transactionTagWrite")
+@GraphQlModel(
+    value = "transactionTagWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = TransactionTagWriteViewPayloadValidator.class
+)
 public interface TransactionTagWriteView extends TransactionTagView {
-
-  /**
-   * Sets the tag identifier.
-   *
-   * @param id the tag id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the transaction identifier.
    *

@@ -3,6 +3,7 @@ package io.flowledger.domain.category.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.category.aggregate.Category;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
  * GraphQL view for categories.
  */
 @EntityView(Category.class)
-@GraphQlModel("category")
+@GraphQlModel(value = "category", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface CategoryView {
 
   /**

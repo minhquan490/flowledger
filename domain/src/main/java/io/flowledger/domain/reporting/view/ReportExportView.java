@@ -3,6 +3,7 @@ package io.flowledger.domain.reporting.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.reporting.entity.ReportExport;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
  * GraphQL view for report exports.
  */
 @EntityView(ReportExport.class)
-@GraphQlModel("reportExport")
+@GraphQlModel(value = "reportExport", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface ReportExportView {
 
   /**

@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.identity.entity.UserPreference;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -15,16 +16,12 @@ import java.util.UUID;
 @EntityView(UserPreference.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("userPreferenceWrite")
+@GraphQlModel(
+    value = "userPreferenceWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = UserPreferenceWriteViewPayloadValidator.class
+)
 public interface UserPreferenceWriteView extends UserPreferenceView {
-
-  /**
-   * Sets the preference identifier.
-   *
-   * @param id the preference id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the user identifier.
    *

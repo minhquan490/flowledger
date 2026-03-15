@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.category.aggregate.Category;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,16 +15,12 @@ import java.util.UUID;
 @EntityView(Category.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("categoryWrite")
+@GraphQlModel(
+    value = "categoryWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = CategoryWriteViewPayloadValidator.class
+)
 public interface CategoryWriteView extends CategoryView {
-
-  /**
-   * Sets the category identifier.
-   *
-   * @param id the category id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the category name.
    *

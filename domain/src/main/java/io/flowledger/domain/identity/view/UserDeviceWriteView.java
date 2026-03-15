@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.identity.entity.UserDevice;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,16 +15,12 @@ import java.util.UUID;
 @EntityView(UserDevice.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("userDeviceWrite")
+@GraphQlModel(
+    value = "userDeviceWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = UserDeviceWriteViewPayloadValidator.class
+)
 public interface UserDeviceWriteView extends UserDeviceView {
-
-  /**
-   * Sets the device identifier.
-   *
-   * @param id the device id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the user identifier.
    *

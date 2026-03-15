@@ -3,6 +3,7 @@ package io.flowledger.domain.analytics.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.analytics.aggregate.FinancialHealthScore;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -12,7 +13,7 @@ import java.util.UUID;
  * GraphQL view for financial health scores.
  */
 @EntityView(FinancialHealthScore.class)
-@GraphQlModel("financialHealthScore")
+@GraphQlModel(value = "financialHealthScore", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface FinancialHealthScoreView {
 
   /**

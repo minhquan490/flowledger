@@ -3,6 +3,7 @@ package io.flowledger.domain.currency.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.currency.entity.ExchangeRate;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -12,7 +13,7 @@ import java.util.UUID;
  * GraphQL view for exchange rates.
  */
 @EntityView(ExchangeRate.class)
-@GraphQlModel("exchangeRate")
+@GraphQlModel(value = "exchangeRate", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface ExchangeRateView {
 
   /**

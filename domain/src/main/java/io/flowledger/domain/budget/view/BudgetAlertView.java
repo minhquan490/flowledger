@@ -3,6 +3,7 @@ package io.flowledger.domain.budget.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.budget.entity.BudgetAlert;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -11,7 +12,7 @@ import java.util.UUID;
  * GraphQL view for budget alerts.
  */
 @EntityView(BudgetAlert.class)
-@GraphQlModel("budgetAlert")
+@GraphQlModel(value = "budgetAlert", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface BudgetAlertView {
 
   /**

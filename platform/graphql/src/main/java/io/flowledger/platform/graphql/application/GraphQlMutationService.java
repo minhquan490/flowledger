@@ -94,7 +94,9 @@ public class GraphQlMutationService {
       if (callback == null) {
         continue;
       }
-      callback.afterMutate(request, result);
+      if (callback.canApply(request.model())) {
+        callback.afterMutate(request, result);
+      }
     }
   }
 }

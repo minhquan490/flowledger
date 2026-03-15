@@ -17,16 +17,12 @@ import java.util.UUID;
 @EntityView(Account.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel(value = "accountWrite", mutationPolicy = RbacGraphQLMutationPolicy.class)
+@GraphQlModel(
+    value = "accountWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = AccountWriteViewPayloadValidator.class
+)
 public interface AccountWriteView extends AccountView {
-
-  /**
-   * Sets the account identifier.
-   *
-   * @param id the account id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the user identifier.
    *

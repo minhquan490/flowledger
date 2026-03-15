@@ -3,13 +3,14 @@ package io.flowledger.domain.currency.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.currency.aggregate.Currency;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
 
 /**
  * GraphQL view for currencies.
  */
 @EntityView(Currency.class)
-@GraphQlModel("currency")
+@GraphQlModel(value = "currency", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface CurrencyView {
 
   /**

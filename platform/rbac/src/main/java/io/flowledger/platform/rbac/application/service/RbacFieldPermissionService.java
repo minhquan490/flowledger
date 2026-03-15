@@ -1,8 +1,8 @@
 package io.flowledger.platform.rbac.application.service;
 
 import io.flowledger.platform.graphql.application.GraphQlApiException;
-import io.flowledger.platform.rbac.domain.entity.RbacResourceEntity;
-import io.flowledger.platform.rbac.domain.entity.RbacRoleEntity;
+import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
+import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -33,14 +33,14 @@ public class RbacFieldPermissionService {
    * @return the readable fields
    */
   public List<String> readableFields(String resource) {
-    RbacResourceEntity resourceEntity = findResource(resource);
-    List<RbacRoleEntity> roles = roleResolver.resolveRoles();
+    RbacResource resourceEntity = findResource(resource);
+    List<RbacRole> roles = roleResolver.resolveRoles();
     if (roles.isEmpty()) {
       return List.of();
     }
-    List<UUID> roleIds = roles.stream().map(RbacRoleEntity::getId).toList();
+    List<UUID> roleIds = roles.stream().map(RbacRole::getId).toList();
     TypedQuery<String> query = entityManager.createQuery(
-        "select distinct f.fieldName from RbacRoleFieldPermissionEntity f "
+        "select distinct f.fieldName from RbacRoleFieldPermission f "
             + "where f.roleId in :roleIds and f.resourceId = :resourceId and f.canRead = true",
         String.class
     );
@@ -59,14 +59,14 @@ public class RbacFieldPermissionService {
     if (fieldNames == null || fieldNames.isEmpty()) {
       return;
     }
-    RbacResourceEntity resourceEntity = findResource(resource);
-    List<RbacRoleEntity> roles = roleResolver.resolveRoles();
+    RbacResource resourceEntity = findResource(resource);
+    List<RbacRole> roles = roleResolver.resolveRoles();
     if (roles.isEmpty()) {
       throw new GraphQlApiException("No roles available for write validation on " + resource + ".", FORBIDDEN_STATUS);
     }
-    List<UUID> roleIds = roles.stream().map(RbacRoleEntity::getId).toList();
+    List<UUID> roleIds = roles.stream().map(RbacRole::getId).toList();
     TypedQuery<String> query = entityManager.createQuery(
-        "select distinct f.fieldName from RbacRoleFieldPermissionEntity f "
+        "select distinct f.fieldName from RbacRoleFieldPermission f "
             + "where f.roleId in :roleIds and f.resourceId = :resourceId and f.canWrite = true",
         String.class
     );
@@ -87,7 +87,7 @@ public class RbacFieldPermissionService {
    * @param resource the resource name
    * @return the resource entity
    */
-  private RbacResourceEntity findResource(String resource) {
+  private RbacResource findResource(String resource) {
     return getRbacResourceEntity(resource, entityManager);
   }
 }

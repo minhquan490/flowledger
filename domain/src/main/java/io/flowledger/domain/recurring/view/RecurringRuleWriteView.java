@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.recurring.aggregate.RecurringRule;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,16 +15,12 @@ import java.util.UUID;
 @EntityView(RecurringRule.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("recurringRuleWrite")
+@GraphQlModel(
+    value = "recurringRuleWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = RecurringRuleWriteViewPayloadValidator.class
+)
 public interface RecurringRuleWriteView extends RecurringRuleView {
-
-  /**
-   * Sets the rule identifier.
-   *
-   * @param id the rule id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the user identifier.
    *

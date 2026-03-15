@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.transfer.aggregate.Transfer;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -15,16 +16,12 @@ import java.util.UUID;
 @EntityView(Transfer.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("transferWrite")
+@GraphQlModel(
+    value = "transferWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = TransferWriteViewPayloadValidator.class
+)
 public interface TransferWriteView extends TransferView {
-
-  /**
-   * Sets the transfer identifier.
-   *
-   * @param id the transfer id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the source account identifier.
    *

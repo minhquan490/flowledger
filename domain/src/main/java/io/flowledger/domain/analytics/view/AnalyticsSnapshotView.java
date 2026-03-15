@@ -3,6 +3,7 @@ package io.flowledger.domain.analytics.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.analytics.aggregate.AnalyticsSnapshot;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -11,7 +12,7 @@ import java.util.UUID;
  * GraphQL view for analytics snapshots.
  */
 @EntityView(AnalyticsSnapshot.class)
-@GraphQlModel("analyticsSnapshot")
+@GraphQlModel(value = "analyticsSnapshot", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface AnalyticsSnapshotView {
 
   /**

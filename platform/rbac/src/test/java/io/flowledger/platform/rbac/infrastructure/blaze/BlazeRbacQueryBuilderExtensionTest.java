@@ -3,7 +3,7 @@ package io.flowledger.platform.rbac.infrastructure.blaze;
 import io.flowledger.platform.rbac.application.context.RbacRequestContext;
 import io.flowledger.platform.rbac.application.context.RbacRequestContextHolder;
 import io.flowledger.platform.rbac.application.service.RbacRowFilterService;
-import io.flowledger.platform.rbac.domain.RbacAction;
+import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

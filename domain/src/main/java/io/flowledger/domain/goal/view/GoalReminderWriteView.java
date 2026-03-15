@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.goal.entity.GoalReminder;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,16 +15,12 @@ import java.util.UUID;
 @EntityView(GoalReminder.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("goalReminderWrite")
+@GraphQlModel(
+    value = "goalReminderWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = GoalReminderWriteViewPayloadValidator.class
+)
 public interface GoalReminderWriteView extends GoalReminderView {
-
-  /**
-   * Sets the reminder identifier.
-   *
-   * @param id the reminder id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the saving goal identifier.
    *

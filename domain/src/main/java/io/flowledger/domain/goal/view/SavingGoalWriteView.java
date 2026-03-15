@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.goal.aggregate.SavingGoal;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -16,16 +17,12 @@ import java.util.UUID;
 @EntityView(SavingGoal.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("savingGoalWrite")
+@GraphQlModel(
+    value = "savingGoalWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = SavingGoalWriteViewPayloadValidator.class
+)
 public interface SavingGoalWriteView extends SavingGoalView {
-
-  /**
-   * Sets the saving goal identifier.
-   *
-   * @param id the saving goal id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the user identifier.
    *

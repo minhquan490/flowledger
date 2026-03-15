@@ -3,6 +3,7 @@ package io.flowledger.domain.identity.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.identity.aggregate.User;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
  * GraphQL view for user aggregates.
  */
 @EntityView(User.class)
-@GraphQlModel("user")
+@GraphQlModel(value = "user", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface UserView {
 
   /**

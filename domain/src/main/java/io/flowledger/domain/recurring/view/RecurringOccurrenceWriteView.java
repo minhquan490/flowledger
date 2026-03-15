@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.recurring.entity.RecurringOccurrence;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,16 +15,12 @@ import java.util.UUID;
 @EntityView(RecurringOccurrence.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("recurringOccurrenceWrite")
+@GraphQlModel(
+    value = "recurringOccurrenceWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = RecurringOccurrenceWriteViewPayloadValidator.class
+)
 public interface RecurringOccurrenceWriteView extends RecurringOccurrenceView {
-
-  /**
-   * Sets the occurrence identifier.
-   *
-   * @param id the occurrence id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the recurring rule identifier.
    *

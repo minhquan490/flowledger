@@ -3,6 +3,7 @@ package io.flowledger.domain.recurring.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.recurring.aggregate.RecurringRule;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
  * GraphQL view for recurring rules.
  */
 @EntityView(RecurringRule.class)
-@GraphQlModel("recurringRule")
+@GraphQlModel(value = "recurringRule", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface RecurringRuleView {
 
   /**

@@ -3,6 +3,7 @@ package io.flowledger.domain.goal.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.goal.entity.GoalContribution;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -11,7 +12,7 @@ import java.util.UUID;
  * GraphQL view for goal contributions.
  */
 @EntityView(GoalContribution.class)
-@GraphQlModel("goalContribution")
+@GraphQlModel(value = "goalContribution", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface GoalContributionView {
 
   /**

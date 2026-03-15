@@ -1,9 +1,9 @@
 package io.flowledger.platform.rbac.application.service;
 
 import io.flowledger.platform.graphql.application.GraphQlApiException;
-import io.flowledger.platform.rbac.domain.RbacAction;
-import io.flowledger.platform.rbac.domain.entity.RbacResourceEntity;
-import io.flowledger.platform.rbac.domain.entity.RbacRoleEntity;
+import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
+import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
+import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -45,14 +45,14 @@ public class RbacPermissionService {
    * @return true when allowed
    */
   public boolean hasPermission(String resource, RbacAction action) {
-    RbacResourceEntity resourceEntity = findResource(resource);
-    List<RbacRoleEntity> roles = roleResolver.resolveRoles();
+    RbacResource resourceEntity = findResource(resource);
+    List<RbacRole> roles = roleResolver.resolveRoles();
     if (roles.isEmpty()) {
       return false;
     }
-    List<UUID> roleIds = roles.stream().map(RbacRoleEntity::getId).toList();
+    List<UUID> roleIds = roles.stream().map(RbacRole::getId).toList();
     TypedQuery<Long> query = entityManager.createQuery(
-        "select count(p) from RbacRoleResourcePermissionEntity p "
+        "select count(p) from RbacRoleResourcePermission p "
             + "where p.roleId in :roleIds and p.resourceId = :resourceId "
             + "and p.action = :action and p.allowed = true",
         Long.class
@@ -69,17 +69,17 @@ public class RbacPermissionService {
    * @param resource the resource name
    * @return the resource entity
    */
-  private RbacResourceEntity findResource(String resource) {
+  private RbacResource findResource(String resource) {
     return getRbacResourceEntity(resource, entityManager);
   }
 
-  static RbacResourceEntity getRbacResourceEntity(String resource, EntityManager entityManager) {
-    TypedQuery<RbacResourceEntity> query = entityManager.createQuery(
-        "select r from RbacResourceEntity r where r.name = :name",
-        RbacResourceEntity.class
+  static RbacResource getRbacResourceEntity(String resource, EntityManager entityManager) {
+    TypedQuery<RbacResource> query = entityManager.createQuery(
+        "select r from RbacResource r where r.name = :name",
+        RbacResource.class
     );
     query.setParameter("name", resource);
-    List<RbacResourceEntity> results = query.getResultList();
+    List<RbacResource> results = query.getResultList();
     if (results.isEmpty()) {
       throw new GraphQlApiException("No RBAC resource registered for " + resource + ".", 404);
     }

@@ -1,7 +1,7 @@
 package io.flowledger.platform.rbac.application.service;
 
 import io.flowledger.platform.rbac.application.RbacSubjectProvider;
-import io.flowledger.platform.rbac.domain.entity.RbacRoleEntity;
+import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -18,11 +18,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RbacRoleResolver {
   private static final String DEFAULT_ROLE_QUERY =
-      "select r from RbacRoleEntity r where r.defaultRole = true";
+      "select r from RbacRole r where r.defaultRole = true";
 
   private static final String USER_ROLE_QUERY =
-      "select r from RbacRoleEntity r "
-          + "join RbacUserRoleEntity ur on ur.roleId = r.id "
+      "select r from RbacRole r "
+          + "join RbacUserRole ur on ur.roleId = r.id "
           + "where ur.userId = :userId";
 
   private final RbacSubjectProvider subjectProvider;
@@ -35,10 +35,10 @@ public class RbacRoleResolver {
    *
    * @return the resolved roles
    */
-  public List<RbacRoleEntity> resolveRoles() {
+  public List<RbacRole> resolveRoles() {
     Optional<UUID> subjectId = subjectProvider.currentSubjectId();
     if (subjectId.isPresent()) {
-      List<RbacRoleEntity> roles = findRolesByUser(subjectId.get());
+      List<RbacRole> roles = findRolesByUser(subjectId.get());
       if (!roles.isEmpty()) {
         return roles;
       }
@@ -52,8 +52,8 @@ public class RbacRoleResolver {
    * @param userId the user identifier
    * @return the assigned roles
    */
-  private List<RbacRoleEntity> findRolesByUser(UUID userId) {
-    TypedQuery<RbacRoleEntity> query = entityManager.createQuery(USER_ROLE_QUERY, RbacRoleEntity.class);
+  private List<RbacRole> findRolesByUser(UUID userId) {
+    TypedQuery<RbacRole> query = entityManager.createQuery(USER_ROLE_QUERY, RbacRole.class);
     query.setParameter("userId", userId);
     return query.getResultList();
   }
@@ -63,7 +63,7 @@ public class RbacRoleResolver {
    *
    * @return the default roles
    */
-  private List<RbacRoleEntity> findDefaultRoles() {
-    return entityManager.createQuery(DEFAULT_ROLE_QUERY, RbacRoleEntity.class).getResultList();
+  private List<RbacRole> findDefaultRoles() {
+    return entityManager.createQuery(DEFAULT_ROLE_QUERY, RbacRole.class).getResultList();
   }
 }

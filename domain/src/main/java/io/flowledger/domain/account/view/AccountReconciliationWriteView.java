@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.account.entity.AccountReconciliation;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,16 +15,12 @@ import java.util.UUID;
 @EntityView(AccountReconciliation.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("accountReconciliationWrite")
+@GraphQlModel(
+    value = "accountReconciliationWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = AccountReconciliationWriteViewPayloadValidator.class
+)
 public interface AccountReconciliationWriteView extends AccountReconciliationView {
-
-  /**
-   * Sets the reconciliation identifier.
-   *
-   * @param id the reconciliation id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the account identifier.
    *

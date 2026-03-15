@@ -3,6 +3,7 @@ package io.flowledger.domain.transaction.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.transaction.aggregate.Transaction;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -11,7 +12,7 @@ import java.util.UUID;
  * GraphQL view for transactions.
  */
 @EntityView(Transaction.class)
-@GraphQlModel("transaction")
+@GraphQlModel(value = "transaction", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface TransactionView {
 
   /**

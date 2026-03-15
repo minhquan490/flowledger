@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.transaction.entity.TransactionAttachment;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,16 +15,12 @@ import java.util.UUID;
 @EntityView(TransactionAttachment.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("transactionAttachmentWrite")
+@GraphQlModel(
+    value = "transactionAttachmentWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = TransactionAttachmentWriteViewPayloadValidator.class
+)
 public interface TransactionAttachmentWriteView extends TransactionAttachmentView {
-
-  /**
-   * Sets the attachment identifier.
-   *
-   * @param id the attachment id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the transaction identifier.
    *

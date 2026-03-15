@@ -1,8 +1,8 @@
 package io.flowledger.application.bootstrap;
 
 import io.flowledger.domain.identity.aggregate.User;
-import io.flowledger.platform.rbac.domain.entity.RbacRoleEntity;
-import io.flowledger.platform.rbac.domain.entity.RbacUserRoleEntity;
+import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
+import io.flowledger.platform.rbac.domain.role.entity.RbacUserRole;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.time.Instant;
@@ -37,7 +37,7 @@ public class AdminAccountBootstrapper implements ApplicationRunner {
    */
   @Override
   public void run(ApplicationArguments args) {
-    RbacRoleEntity adminRole = findAdminRole();
+    RbacRole adminRole = findAdminRole();
     if (adminRole == null) {
       log.warn("Admin role {} not found. Skipping admin account bootstrap.", DEFAULT_ADMIN_ROLE_CODE);
       return;
@@ -51,13 +51,13 @@ public class AdminAccountBootstrapper implements ApplicationRunner {
    *
    * @return the administrator role, or null when missing
    */
-  private RbacRoleEntity findAdminRole() {
-    TypedQuery<RbacRoleEntity> query = entityManager.createQuery(
-        "select r from RbacRoleEntity r where r.code = :code",
-        RbacRoleEntity.class
+  private RbacRole findAdminRole() {
+    TypedQuery<RbacRole> query = entityManager.createQuery(
+        "select r from RbacRole r where r.code = :code",
+        RbacRole.class
     );
     query.setParameter("code", DEFAULT_ADMIN_ROLE_CODE);
-    List<RbacRoleEntity> results = query.getResultList();
+    List<RbacRole> results = query.getResultList();
     if (results.isEmpty()) {
       return null;
     }
@@ -105,16 +105,16 @@ public class AdminAccountBootstrapper implements ApplicationRunner {
    * @param adminUser the administrator user
    * @param adminRole the administrator role
    */
-  private void ensureAdminUserRole(User adminUser, RbacRoleEntity adminRole) {
+  private void ensureAdminUserRole(User adminUser, RbacRole adminRole) {
     if (adminUser == null || adminUser.getId() == null) {
       return;
     }
     if (adminRole == null || adminRole.getId() == null) {
       return;
     }
-    TypedQuery<RbacUserRoleEntity> query = entityManager.createQuery(
-        "select ur from RbacUserRoleEntity ur where ur.userId = :userId and ur.roleId = :roleId",
-        RbacUserRoleEntity.class
+    TypedQuery<RbacUserRole> query = entityManager.createQuery(
+        "select ur from RbacUserRole ur where ur.userId = :userId and ur.roleId = :roleId",
+        RbacUserRole.class
     );
     query.setParameter("userId", adminUser.getId());
     query.setParameter("roleId", adminRole.getId());
@@ -132,7 +132,7 @@ public class AdminAccountBootstrapper implements ApplicationRunner {
    */
   private void persistAdminUserRole(java.util.UUID userId, java.util.UUID roleId) {
     Instant now = Instant.now();
-    RbacUserRoleEntity assignment = new RbacUserRoleEntity();
+    RbacUserRole assignment = new RbacUserRole();
     assignment.setUserId(userId);
     assignment.setRoleId(roleId);
     assignment.setCreatedAt(now);

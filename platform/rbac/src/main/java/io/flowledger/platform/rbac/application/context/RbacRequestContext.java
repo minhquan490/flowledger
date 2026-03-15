@@ -1,6 +1,6 @@
 package io.flowledger.platform.rbac.application.context;
 
-import io.flowledger.platform.rbac.domain.RbacAction;
+import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 
 /**
  * Captures RBAC request context for query customization.

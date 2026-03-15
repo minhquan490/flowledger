@@ -3,6 +3,7 @@ package io.flowledger.domain.importexport.view;
 import com.blazebit.persistence.view.EntityView;
 import io.flowledger.domain.importexport.aggregate.Backup;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
  * GraphQL view for backups.
  */
 @EntityView(Backup.class)
-@GraphQlModel("backup")
+@GraphQlModel(value = "backup", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface BackupView {
 
   /**

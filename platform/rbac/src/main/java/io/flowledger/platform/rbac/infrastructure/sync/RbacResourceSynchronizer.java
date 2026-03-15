@@ -2,10 +2,10 @@ package io.flowledger.platform.rbac.infrastructure.sync;
 
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlModelRegistry;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlViewDefinition;
-import io.flowledger.platform.rbac.domain.RbacAction;
-import io.flowledger.platform.rbac.domain.entity.RbacResourceEntity;
-import io.flowledger.platform.rbac.domain.entity.RbacRoleEntity;
-import io.flowledger.platform.rbac.domain.entity.RbacRoleResourcePermissionEntity;
+import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
+import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
+import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
+import io.flowledger.platform.rbac.domain.role.entity.RbacRoleResourcePermission;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.time.Instant;
@@ -44,7 +44,7 @@ public class RbacResourceSynchronizer {
   public void synchronize() {
     syncResources();
     ensureDefaultRole();
-    RbacRoleEntity adminRole = ensureAdminRole();
+    RbacRole adminRole = ensureAdminRole();
     ensureAdminRolePermissions(adminRole);
   }
 
@@ -62,7 +62,7 @@ public class RbacResourceSynchronizer {
       return;
     }
 
-    Map<String, RbacResourceEntity> existingByName = loadExistingResources(modelNames);
+    Map<String, RbacResource> existingByName = loadExistingResources(modelNames);
     Instant now = Instant.now();
 
     for (String model : modelNames) {
@@ -87,27 +87,27 @@ public class RbacResourceSynchronizer {
   }
 
   /**
-   * Loads existing {@link RbacResourceEntity} records for the given names
+   * Loads existing {@link RbacResource} records for the given names
    * using batched {@code IN} queries to avoid database clause size limits.
    *
    * @param modelNames the full list of model names to look up
    * @return a map of resource name to entity for all found records
    */
-  private Map<String, RbacResourceEntity> loadExistingResources(List<String> modelNames) {
-    List<RbacResourceEntity> results = new ArrayList<>();
+  private Map<String, RbacResource> loadExistingResources(List<String> modelNames) {
+    List<RbacResource> results = new ArrayList<>();
     List<List<String>> batches = partition(modelNames);
 
     for (List<String> batch : batches) {
-      TypedQuery<RbacResourceEntity> query = entityManager.createQuery(
-          "select r from RbacResourceEntity r where r.name in :names",
-          RbacResourceEntity.class
+      TypedQuery<RbacResource> query = entityManager.createQuery(
+          "select r from RbacResource r where r.name in :names",
+          RbacResource.class
       );
       query.setParameter("names", batch);
       results.addAll(query.getResultList());
     }
 
     return results.stream()
-        .collect(Collectors.toMap(RbacResourceEntity::getName, Function.identity()));
+        .collect(Collectors.toMap(RbacResource::getName, Function.identity()));
   }
 
   /**
@@ -116,7 +116,7 @@ public class RbacResourceSynchronizer {
    * @param existing the existing resource entity
    * @param now the current timestamp
    */
-  private void updateIfSystemManaged(RbacResourceEntity existing, Instant now) {
+  private void updateIfSystemManaged(RbacResource existing, Instant now) {
     if (!existing.isSystemManaged()) {
       return;
     }
@@ -131,7 +131,7 @@ public class RbacResourceSynchronizer {
    * @param now the current timestamp
    */
   private void persistNewResource(String model, Instant now) {
-    RbacResourceEntity resource = new RbacResourceEntity();
+    RbacResource resource = new RbacResource();
     resource.setName(model);
     resource.setSystemManaged(true);
     resource.setCreatedAt(now);
@@ -143,9 +143,9 @@ public class RbacResourceSynchronizer {
    * Ensures a default role exists for users without explicit roles.
    */
   private void ensureDefaultRole() {
-    TypedQuery<RbacRoleEntity> query = entityManager.createQuery(
-        "select r from RbacRoleEntity r where r.defaultRole = true",
-        RbacRoleEntity.class
+    TypedQuery<RbacRole> query = entityManager.createQuery(
+        "select r from RbacRole r where r.defaultRole = true",
+        RbacRole.class
     );
     if (!query.getResultList().isEmpty()) {
       return;
@@ -158,7 +158,7 @@ public class RbacResourceSynchronizer {
    */
   private void persistDefaultRole() {
     Instant now = Instant.now();
-    RbacRoleEntity role = new RbacRoleEntity();
+    RbacRole role = new RbacRole();
     role.setCode(DEFAULT_ROLE_CODE);
     role.setName(DEFAULT_ROLE_NAME);
     role.setDefaultRole(true);
@@ -173,13 +173,13 @@ public class RbacResourceSynchronizer {
    *
    * @return the administrator role entity
    */
-  private RbacRoleEntity ensureAdminRole() {
-    TypedQuery<RbacRoleEntity> query = entityManager.createQuery(
-        "select r from RbacRoleEntity r where r.code = :code",
-        RbacRoleEntity.class
+  private RbacRole ensureAdminRole() {
+    TypedQuery<RbacRole> query = entityManager.createQuery(
+        "select r from RbacRole r where r.code = :code",
+        RbacRole.class
     );
     query.setParameter("code", DEFAULT_ADMIN_ROLE_CODE);
-    List<RbacRoleEntity> results = query.getResultList();
+    List<RbacRole> results = query.getResultList();
     if (!results.isEmpty()) {
       return results.getFirst();
     }
@@ -191,9 +191,9 @@ public class RbacResourceSynchronizer {
    *
    * @return the newly persisted administrator role
    */
-  private RbacRoleEntity persistAdminRole() {
+  private RbacRole persistAdminRole() {
     Instant now = Instant.now();
-    RbacRoleEntity role = new RbacRoleEntity();
+    RbacRole role = new RbacRole();
     role.setCode(DEFAULT_ADMIN_ROLE_CODE);
     role.setName(DEFAULT_ADMIN_ROLE_NAME);
     role.setDefaultRole(false);
@@ -210,22 +210,22 @@ public class RbacResourceSynchronizer {
    *
    * @param adminRole the administrator role
    */
-  private void ensureAdminRolePermissions(RbacRoleEntity adminRole) {
+  private void ensureAdminRolePermissions(RbacRole adminRole) {
     if (adminRole == null || adminRole.getId() == null) {
       return;
     }
-    List<RbacResourceEntity> resources = entityManager.createQuery(
-        "select r from RbacResourceEntity r",
-        RbacResourceEntity.class
+    List<RbacResource> resources = entityManager.createQuery(
+        "select r from RbacResource r",
+        RbacResource.class
     ).getResultList();
     if (resources.isEmpty()) {
       return;
     }
-    List<RbacRoleResourcePermissionEntity> existing = loadRoleResourcePermissions(adminRole.getId(), resources);
-    Map<String, RbacRoleResourcePermissionEntity> existingByKey = existing.stream()
+    List<RbacRoleResourcePermission> existing = loadRoleResourcePermissions(adminRole.getId(), resources);
+    Map<String, RbacRoleResourcePermission> existingByKey = existing.stream()
         .collect(Collectors.toMap(this::permissionKey, Function.identity()));
     Instant now = Instant.now();
-    for (RbacResourceEntity resource : resources) {
+    for (RbacResource resource : resources) {
       for (RbacAction action : RbacAction.values()) {
         String key = permissionKey(adminRole.getId(), resource.getId(), action);
         if (!existingByKey.containsKey(key)) {
@@ -244,21 +244,21 @@ public class RbacResourceSynchronizer {
    * @param resources the resources to check
    * @return the existing permissions for the role
    */
-  private List<RbacRoleResourcePermissionEntity> loadRoleResourcePermissions(
+  private List<RbacRoleResourcePermission> loadRoleResourcePermissions(
       UUID roleId,
-      List<RbacResourceEntity> resources
+      List<RbacResource> resources
   ) {
     List<UUID> resourceIds = resources.stream()
-        .map(RbacResourceEntity::getId)
+        .map(RbacResource::getId)
         .filter(Objects::nonNull)
         .toList();
     if (resourceIds.isEmpty()) {
       return List.of();
     }
-    TypedQuery<RbacRoleResourcePermissionEntity> query = entityManager.createQuery(
-        "select p from RbacRoleResourcePermissionEntity p "
+    TypedQuery<RbacRoleResourcePermission> query = entityManager.createQuery(
+        "select p from RbacRoleResourcePermission p "
             + "where p.roleId = :roleId and p.resourceId in :resourceIds",
-        RbacRoleResourcePermissionEntity.class
+        RbacRoleResourcePermission.class
     );
     query.setParameter("roleId", roleId);
     query.setParameter("resourceIds", resourceIds);
@@ -271,7 +271,7 @@ public class RbacResourceSynchronizer {
    * @param permission the permission entity
    * @return the permission key
    */
-  private String permissionKey(RbacRoleResourcePermissionEntity permission) {
+  private String permissionKey(RbacRoleResourcePermission permission) {
     return permissionKey(permission.getRoleId(), permission.getResourceId(), permission.getAction());
   }
 
@@ -299,7 +299,7 @@ public class RbacResourceSynchronizer {
     if (resourceId == null) {
       return;
     }
-    RbacRoleResourcePermissionEntity permission = new RbacRoleResourcePermissionEntity();
+    RbacRoleResourcePermission permission = new RbacRoleResourcePermission();
     permission.setRoleId(roleId);
     permission.setResourceId(resourceId);
     permission.setAction(action);
@@ -316,7 +316,7 @@ public class RbacResourceSynchronizer {
    * @param permission the existing permission
    * @param now the current timestamp
    */
-  private void ensurePermissionAllowed(RbacRoleResourcePermissionEntity permission, Instant now) {
+  private void ensurePermissionAllowed(RbacRoleResourcePermission permission, Instant now) {
     if (permission == null || permission.isAllowed()) {
       return;
     }

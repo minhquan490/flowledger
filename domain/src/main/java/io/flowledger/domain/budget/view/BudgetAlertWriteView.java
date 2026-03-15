@@ -5,6 +5,7 @@ import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.budget.entity.BudgetAlert;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -15,16 +16,12 @@ import java.util.UUID;
 @EntityView(BudgetAlert.class)
 @CreatableEntityView
 @UpdatableEntityView
-@GraphQlModel("budgetAlertWrite")
+@GraphQlModel(
+    value = "budgetAlertWrite",
+    mutationPolicy = RbacGraphQLMutationPolicy.class,
+    mutationPayloadValidator = BudgetAlertWriteViewPayloadValidator.class
+)
 public interface BudgetAlertWriteView extends BudgetAlertView {
-
-  /**
-   * Sets the budget alert identifier.
-   *
-   * @param id the budget alert id
-   */
-  void setId(UUID id);
-
   /**
    * Sets the budget identifier.
    *
