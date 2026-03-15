@@ -6,11 +6,13 @@ import io.flowledger.platform.graphql.application.GraphQlInternalException;
 import io.flowledger.platform.graphql.application.GraphQlQueryHandlerRegistry;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.query.blaze.BlazeViewLoader;
+
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import lombok.Getter;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.context.ApplicationContext;
@@ -21,17 +23,19 @@ import org.springframework.context.ApplicationContext;
 public class BlazeGraphQlModelRegistry {
   @Getter
   private final Map<String, BlazeGraphQlViewDefinition> viewsByModel;
+  private final ApplicationContext applicationContext;
 
   /**
    * Creates a registry by scanning for Blaze entity views.
    *
-   * @param blazeViewLoader loader for Blaze views
+   * @param blazeViewLoader    loader for Blaze views
    * @param applicationContext Spring application context
    */
   public BlazeGraphQlModelRegistry(
       BlazeViewLoader blazeViewLoader,
       ApplicationContext applicationContext
   ) {
+    this.applicationContext = applicationContext;
     this.viewsByModel = loadViews(blazeViewLoader, applicationContext);
   }
 
@@ -53,7 +57,7 @@ public class BlazeGraphQlModelRegistry {
   /**
    * Loads and indexes Blaze entity views by model name.
    *
-   * @param blazeViewLoader loader for Blaze views
+   * @param blazeViewLoader    loader for Blaze views
    * @param applicationContext Spring application context
    * @return the indexed view map
    */
@@ -71,7 +75,7 @@ public class BlazeGraphQlModelRegistry {
         .collect(Collectors.toUnmodifiableMap(
             definition -> normalizeModel(definition.model()),
             Function.identity(),
-            (first, second) -> {
+            (first, _) -> {
               throw new GraphQlInternalException(
                   "Multiple Blaze views mapped to model: " + first.model());
             }
@@ -90,19 +94,29 @@ public class BlazeGraphQlModelRegistry {
       throw new GraphQlInternalException(
           "Blaze view " + viewClass.getName() + " is missing @EntityView");
     }
-    String model = resolveModelName(viewClass);
-    return new BlazeGraphQlViewDefinition(model, viewClass, entityView.value());
+    BlazeGraphQlViewDefinition.ModelInformation modelInformation = resolveModelInformation(viewClass);
+    return new BlazeGraphQlViewDefinition(modelInformation, viewClass, entityView.value(), applicationContext);
   }
 
   /**
-   * Resolves the GraphQL model name for a view.
+   * Resolves model metadata from a Blaze view class.
    *
    * @param viewClass the Blaze view class
-   * @return the model name
+   * @return the resolved model information
    */
-  private String resolveModelName(Class<?> viewClass) {
+  private BlazeGraphQlViewDefinition.ModelInformation resolveModelInformation(Class<?> viewClass) {
     GraphQlModel model = viewClass.getAnnotation(GraphQlModel.class);
-    if (model != null && !model.value().isBlank()) {
+
+    if (model == null) {
+      throw new GraphQlInternalException("GraphQl model " + viewClass.getName() + " is missing GraphQlModel");
+    }
+
+    String modelName = resolveModelName(viewClass, model);
+    return new BlazeGraphQlViewDefinition.ModelInformation(modelName, model.mutationPolicy(), model.accessPolicy(), model.mutationPayloadValidator());
+  }
+
+  private String resolveModelName(Class<?> viewClass, GraphQlModel model) {
+    if (!model.value().isBlank()) {
       return model.value();
     }
     String simpleName = viewClass.getSimpleName();

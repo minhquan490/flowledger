@@ -28,7 +28,6 @@ public class BlazeGraphQlQueryHandler implements GraphQlQueryHandler {
   private final BlazeGraphQlModelRegistry modelRegistry;
   private final BlazeQueryBuilder queryBuilder;
   private final EntityViewManager entityViewManager;
-  private final GraphQlAccessPolicy accessPolicy;
 
   /**
    * Returns the wildcard model name used by this generic handler.
@@ -48,8 +47,9 @@ public class BlazeGraphQlQueryHandler implements GraphQlQueryHandler {
    */
   @Override
   public GraphQlReadResult read(GraphQlReadRequest request) {
+    BlazeGraphQlViewDefinition definition = resolveDefinition(request.model());
+    GraphQlAccessPolicy accessPolicy = definition.resolveAccessPolicy();
     GraphQlReadRequest authorized = accessPolicy.authorizeRead(request);
-    BlazeGraphQlViewDefinition definition = resolveDefinition(authorized.model());
     CriteriaBuilder<?> criteriaBuilder = queryBuilder.forEntity(definition.entityClass());
     queryBuilder.applyKeyFilters(criteriaBuilder, authorized.key());
 
@@ -70,8 +70,9 @@ public class BlazeGraphQlQueryHandler implements GraphQlQueryHandler {
   @Override
   @SuppressWarnings({"unchecked"})
   public GraphQlSearchResult search(GraphQlSearchRequest request) {
+    BlazeGraphQlViewDefinition definition = resolveDefinition(request.model());
+    GraphQlAccessPolicy accessPolicy = definition.resolveAccessPolicy();
     GraphQlSearchRequest authorized = accessPolicy.authorizeSearch(request);
-    BlazeGraphQlViewDefinition definition = resolveDefinition(authorized.model());
     CriteriaBuilder<?> criteriaBuilder = queryBuilder.forEntity(definition.entityClass());
     queryBuilder.applyFilter(criteriaBuilder, authorized.filter());
     queryBuilder.applySort(

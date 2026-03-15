@@ -2,17 +2,21 @@ package io.flowledger.platform.graphql.infrastructure.autoconfigure;
 
 import graphql.scalars.ExtendedScalars;
 import io.flowledger.platform.graphql.application.AllowAllGraphQlAccessPolicy;
-import io.flowledger.platform.graphql.application.GraphQlAccessPolicy;
 import io.flowledger.platform.graphql.application.GraphQlMutationCallback;
 import io.flowledger.platform.graphql.application.GraphQlMutationHandlerRegistry;
 import io.flowledger.platform.graphql.application.GraphQlMutationService;
 import io.flowledger.platform.graphql.application.GraphQlQueryHandlerRegistry;
 import io.flowledger.platform.graphql.application.GraphQlQueryService;
+import io.flowledger.platform.graphql.application.NoopGraphQLMutationPayloadValidator;
 import io.flowledger.platform.graphql.domain.GraphQlMutationHandler;
 import io.flowledger.platform.graphql.domain.GraphQlQueryHandler;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlModelRegistry;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlMutationHandler;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlQueryHandler;
+import io.flowledger.platform.graphql.infrastructure.blaze.mutation.validator.CreateGraphQLMutationRequestValidator;
+import io.flowledger.platform.graphql.infrastructure.blaze.mutation.validator.DeleteGraphQLMutationRequestValidator;
+import io.flowledger.platform.graphql.infrastructure.blaze.mutation.validator.UpdateGraphQLMutationRequestValidator;
+import io.flowledger.platform.graphql.application.PermitsAllGraphQLMutationPolicy;
 import io.flowledger.platform.graphql.infrastructure.web.GraphQlQueryController;
 import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
 import io.flowledger.platform.query.blaze.BlazeViewLoader;
@@ -23,6 +27,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.graphql.execution.GraphQlSource;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 
@@ -34,6 +40,16 @@ import java.util.List;
 @AutoConfiguration
 @ConditionalOnClass(GraphQlSource.class)
 public class CoreGraphQlAutoConfiguration {
+
+  @Configuration
+  @Import({
+      CreateGraphQLMutationRequestValidator.class,
+      UpdateGraphQLMutationRequestValidator.class,
+      DeleteGraphQLMutationRequestValidator.class,
+  })
+  static class MutationValidatorDeclarator {
+
+  }
 
   /**
    * Registers core JSON and Long scalar support.
@@ -117,8 +133,30 @@ public class CoreGraphQlAutoConfiguration {
    */
   @Bean
   @ConditionalOnMissingBean
-  public GraphQlAccessPolicy graphQlAccessPolicy() {
+  public AllowAllGraphQlAccessPolicy graphQlAccessPolicy() {
     return new AllowAllGraphQlAccessPolicy();
+  }
+
+  /**
+   * Registers a default mutation policy when none is provided.
+   *
+   * @return the default mutation policy
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public PermitsAllGraphQLMutationPolicy graphQlMutationPolicy() {
+    return new  PermitsAllGraphQLMutationPolicy();
+  }
+
+  /**
+   * Register a default payload validator for mutation operation
+   *
+   * @return the default validator
+   * */
+  @Bean
+  @ConditionalOnMissingBean
+  public NoopGraphQLMutationPayloadValidator noOpGraphQLMutationPayloadValidator() {
+    return new NoopGraphQLMutationPayloadValidator();
   }
 
   /**
@@ -143,7 +181,6 @@ public class CoreGraphQlAutoConfiguration {
    * @param modelRegistry the Blaze model registry
    * @param queryBuilder the query builder
    * @param entityViewManager the entity view manager
-   * @param accessPolicy the access policy
    * @return the generic query handler
    */
   @Bean
@@ -151,14 +188,12 @@ public class CoreGraphQlAutoConfiguration {
   public GraphQlQueryHandler blazeGraphQlQueryHandler(
       BlazeGraphQlModelRegistry modelRegistry,
       BlazeQueryBuilder queryBuilder,
-      EntityViewManager entityViewManager,
-      GraphQlAccessPolicy accessPolicy
+      EntityViewManager entityViewManager
   ) {
     return new BlazeGraphQlQueryHandler(
         modelRegistry,
         queryBuilder,
-        entityViewManager,
-        accessPolicy
+        entityViewManager
     );
   }
 

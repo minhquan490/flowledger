@@ -60,14 +60,15 @@ class BlazeGraphQlQueryHandlerIntegrationTest {
   private EntityViewManager entityViewManager;
   @Autowired
   private EntityManager entityManager;
+  private CriteriaBuilder<AccountEntity> criteriaBuilder;
 
   /**
-   * Configures mock beans and Blaze view discovery.
+   * Configures mock beans, captures the criteria builder, and sets up Blaze view discovery.
    */
   @BeforeEach
   @SuppressWarnings({"rawtypes", "unchecked"})
   void configureMocks() {
-    CriteriaBuilder criteriaBuilder = org.mockito.Mockito.mock(CriteriaBuilder.class);
+    criteriaBuilder = org.mockito.Mockito.mock(CriteriaBuilder.class);
     FullQueryBuilder viewQuery = org.mockito.Mockito.mock(FullQueryBuilder.class);
     PaginatedCriteriaBuilder pagedQuery = org.mockito.Mockito.mock(PaginatedCriteriaBuilder.class);
     RestrictionBuilder restrictionBuilder = org.mockito.Mockito.mock(RestrictionBuilder.class);
@@ -89,7 +90,13 @@ class BlazeGraphQlQueryHandlerIntegrationTest {
   void readUsesBlazeHandler() {
     String document = """
         query {
-          read(request: { model: "account", key: { id: "acc_100" }, fields: ["id", "name"] }) {
+          read(
+            request: {
+              model: "account"
+              key: { id: "acc_100" }
+              fields: ["id", "name"]
+            }
+          ) {
             found
             item
           }
@@ -110,13 +117,23 @@ class BlazeGraphQlQueryHandlerIntegrationTest {
   }
 
   /**
-   * Verifies the generic Blaze handler is invoked for search queries.
+   * Verifies the generic Blaze handler is invoked for search queries with filters.
    */
   @Test
   void searchUsesBlazeHandler() {
     String document = """
         query {
-          search(request: { model: "account", fields: ["id", "name"], page: { offset: 0, limit: 1 } }) {
+          search(
+            request: {
+              model: "account"
+              filter: { name: "Primary" }
+              fields: ["id", "name"]
+              page: {
+                offset: 0
+                limit: 1
+              }
+            }
+          ) {
             total
             items
           }
@@ -136,6 +153,7 @@ class BlazeGraphQlQueryHandlerIntegrationTest {
     assertEquals(1, items.size());
     assertEquals("acc_100", items.getFirst().get("id"));
     assertEquals("Primary", items.getFirst().get("name"));
+    org.mockito.Mockito.verify(criteriaBuilder).where("name");
   }
 
   @SpringBootConfiguration
