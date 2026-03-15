@@ -34,13 +34,13 @@ public class UserPreference {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "timezone")
+  @Column(name = "timezone", nullable = true, length = 50)
   private String timezone;
 
-  @Column(name = "language")
+  @Column(name = "language", nullable = true, length = 20)
   private String language;
 
-  @Column(name = "theme")
+  @Column(name = "theme", nullable = true, length = 50)
   private String theme;
 
   @Column(name = "created_at", nullable = false)

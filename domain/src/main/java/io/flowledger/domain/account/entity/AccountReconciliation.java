@@ -37,7 +37,7 @@ public class AccountReconciliation {
   @Column(name = "reconciled_at", nullable = false)
   private Instant reconciledAt;
 
-  @Column(name = "notes")
+  @Column(name = "notes", nullable = true, length = 500)
   private String notes;
 
   @Column(name = "created_at", nullable = false)

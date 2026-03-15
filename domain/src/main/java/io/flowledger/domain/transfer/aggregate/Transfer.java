@@ -38,16 +38,16 @@ public class Transfer {
   @Column(name = "to_account_id", nullable = false)
   private UUID toAccountId;
 
-  @Column(name = "amount", nullable = false)
+  @Column(name = "amount", nullable = false, precision = 19, scale = 4)
   private BigDecimal amount;
 
-  @Column(name = "fee_amount")
+  @Column(name = "fee_amount", nullable = true, precision = 19, scale = 4)
   private BigDecimal feeAmount;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "status", nullable = false, length = 50)
   private String status;
 
-  @Column(name = "scheduled_at")
+  @Column(name = "scheduled_at", nullable = true)
   private Instant scheduledAt;
 
   @Column(name = "created_at", nullable = false)

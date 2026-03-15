@@ -31,10 +31,10 @@ public class Tag {
   @GeneratedValue
   private UUID id;
 
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 100)
   private String name;
 
-  @Column(name = "color")
+  @Column(name = "color", nullable = true, length = 20)
   private String color;
 
   @Column(name = "created_at", nullable = false)

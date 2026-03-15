@@ -34,16 +34,16 @@ public class RecurringRule {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 200)
   private String name;
 
-  @Column(name = "schedule", nullable = false)
+  @Column(name = "schedule", nullable = false, length = 100)
   private String schedule;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "status", nullable = false, length = 50)
   private String status;
 
-  @Column(name = "next_run_at")
+  @Column(name = "next_run_at", nullable = true)
   private Instant nextRunAt;
 
   @Column(name = "created_at", nullable = false)

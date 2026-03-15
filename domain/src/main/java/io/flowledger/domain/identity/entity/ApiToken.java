@@ -34,10 +34,10 @@ public class ApiToken {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "token_hash", nullable = false)
+  @Column(name = "token_hash", nullable = false, length = 500)
   private String tokenHash;
 
-  @Column(name = "expires_at")
+  @Column(name = "expires_at", nullable = true)
   private Instant expiresAt;
 
   @Column(name = "created_at", nullable = false)

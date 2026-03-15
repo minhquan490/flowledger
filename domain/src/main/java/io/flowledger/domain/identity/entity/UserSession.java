@@ -34,13 +34,13 @@ public class UserSession {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "device_id")
+  @Column(name = "device_id", nullable = true)
   private UUID deviceId;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "status", nullable = false, length = 50)
   private String status;
 
-  @Column(name = "expires_at")
+  @Column(name = "expires_at", nullable = true)
   private Instant expiresAt;
 
   @Column(name = "created_at", nullable = false)

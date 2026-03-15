@@ -39,7 +39,7 @@ public class BudgetHistory {
   @Column(name = "snapshot_date", nullable = false)
   private LocalDate snapshotDate;
 
-  @Column(name = "spent_amount", nullable = false)
+  @Column(name = "spent_amount", nullable = false, precision = 19, scale = 4)
   private BigDecimal spentAmount;
 
   @Column(name = "created_at", nullable = false)

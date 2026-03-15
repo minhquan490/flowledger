@@ -42,10 +42,10 @@ public class BudgetPeriod {
   @Column(name = "period_end", nullable = false)
   private LocalDate periodEnd;
 
-  @Column(name = "amount", nullable = false)
+  @Column(name = "amount", nullable = false, precision = 19, scale = 4)
   private BigDecimal amount;
 
-  @Column(name = "rollover_amount")
+  @Column(name = "rollover_amount", nullable = true, precision = 19, scale = 4)
   private BigDecimal rolloverAmount;
 
   @Column(name = "created_at", nullable = false)

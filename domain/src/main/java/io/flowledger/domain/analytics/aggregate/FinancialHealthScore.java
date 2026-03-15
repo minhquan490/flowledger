@@ -39,7 +39,7 @@ public class FinancialHealthScore {
   @Column(name = "score_date", nullable = false)
   private LocalDate scoreDate;
 
-  @Column(name = "score", nullable = false)
+  @Column(name = "score", nullable = false, precision = 5, scale = 2)
   private BigDecimal score;
 
   @Column(name = "created_at", nullable = false)

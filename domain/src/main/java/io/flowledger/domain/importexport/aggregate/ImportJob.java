@@ -34,16 +34,16 @@ public class ImportJob {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "source_type", nullable = false)
+  @Column(name = "source_type", nullable = false, length = 50)
   private String sourceType;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "status", nullable = false, length = 50)
   private String status;
 
-  @Column(name = "started_at")
+  @Column(name = "started_at", nullable = true)
   private Instant startedAt;
 
-  @Column(name = "finished_at")
+  @Column(name = "finished_at", nullable = true)
   private Instant finishedAt;
 
   @Column(name = "created_at", nullable = false)

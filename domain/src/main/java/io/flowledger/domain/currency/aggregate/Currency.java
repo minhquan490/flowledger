@@ -26,13 +26,13 @@ public class Currency {
   public static final String TABLE_NAME = "currencies";
 
   @Id
-  @Column(name = "code", nullable = false)
+  @Column(name = "code", nullable = false, length = 10)
   private String code;
 
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 100)
   private String name;
 
-  @Column(name = "symbol")
+  @Column(name = "symbol", nullable = true, length = 10)
   private String symbol;
 
   @Column(name = "created_at", nullable = false)

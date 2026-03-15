@@ -34,7 +34,7 @@ public class TransactionAttachment {
   @Column(name = "transaction_id", nullable = false)
   private UUID transactionId;
 
-  @Column(name = "document_id")
+  @Column(name = "document_id", nullable = true)
   private UUID documentId;
 
   @Column(name = "created_at", nullable = false)

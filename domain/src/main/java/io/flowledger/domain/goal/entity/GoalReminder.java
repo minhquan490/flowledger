@@ -37,7 +37,7 @@ public class GoalReminder {
   @Column(name = "remind_at", nullable = false)
   private Instant remindAt;
 
-  @Column(name = "channel", nullable = false)
+  @Column(name = "channel", nullable = false, length = 50)
   private String channel;
 
   @Column(name = "created_at", nullable = false)

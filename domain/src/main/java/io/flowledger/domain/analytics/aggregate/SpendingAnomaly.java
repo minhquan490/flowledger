@@ -37,7 +37,7 @@ public class SpendingAnomaly {
   @Column(name = "detected_at", nullable = false)
   private Instant detectedAt;
 
-  @Column(name = "description")
+  @Column(name = "description", nullable = true, length = 500)
   private String description;
 
   @Column(name = "created_at", nullable = false)

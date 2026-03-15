@@ -34,10 +34,10 @@ public class ImportFile {
   @Column(name = "import_job_id", nullable = false)
   private UUID importJobId;
 
-  @Column(name = "file_name")
+  @Column(name = "file_name", nullable = true, length = 500)
   private String fileName;
 
-  @Column(name = "file_type")
+  @Column(name = "file_type", nullable = true, length = 50)
   private String fileType;
 
   @Column(name = "created_at", nullable = false)

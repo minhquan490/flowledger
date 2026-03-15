@@ -31,19 +31,19 @@ public class Category {
   @GeneratedValue
   private UUID id;
 
-  @Column(name = "parent_id")
+  @Column(name = "parent_id", nullable = true)
   private UUID parentId;
 
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 200)
   private String name;
 
-  @Column(name = "icon")
+  @Column(name = "icon", nullable = true, length = 200)
   private String icon;
 
-  @Column(name = "color")
+  @Column(name = "color", nullable = true, length = 20)
   private String color;
 
-  @Column(name = "rules")
+  @Column(name = "rules", nullable = true, length = 1000)
   private String rules;
 
   @Column(name = "created_at", nullable = false)

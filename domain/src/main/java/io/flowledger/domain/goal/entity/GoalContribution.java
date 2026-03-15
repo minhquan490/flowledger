@@ -35,7 +35,7 @@ public class GoalContribution {
   @Column(name = "saving_goal_id", nullable = false)
   private UUID savingGoalId;
 
-  @Column(name = "amount", nullable = false)
+  @Column(name = "amount", nullable = false, precision = 19, scale = 4)
   private BigDecimal amount;
 
   @Column(name = "contributed_at", nullable = false)

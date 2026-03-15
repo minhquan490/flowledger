@@ -34,13 +34,13 @@ public class UserDevice {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "device_name")
+  @Column(name = "device_name", nullable = true, length = 200)
   private String deviceName;
 
-  @Column(name = "device_type")
+  @Column(name = "device_type", nullable = true, length = 100)
   private String deviceType;
 
-  @Column(name = "last_seen_at")
+  @Column(name = "last_seen_at", nullable = true)
   private Instant lastSeenAt;
 
   @Column(name = "created_at", nullable = false)

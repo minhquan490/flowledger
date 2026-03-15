@@ -34,16 +34,16 @@ public class Notification {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "notification_type", nullable = false)
+  @Column(name = "notification_type", nullable = false, length = 100)
   private String notificationType;
 
-  @Column(name = "message")
+  @Column(name = "message", nullable = true, length = 1000)
   private String message;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "status", nullable = false, length = 50)
   private String status;
 
-  @Column(name = "sent_at")
+  @Column(name = "sent_at", nullable = true)
   private Instant sentAt;
 
   @Column(name = "created_at", nullable = false)

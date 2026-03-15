@@ -37,7 +37,7 @@ public class RecurringOccurrence {
   @Column(name = "scheduled_at", nullable = false)
   private Instant scheduledAt;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "status", nullable = false, length = 50)
   private String status;
 
   @Column(name = "created_at", nullable = false)

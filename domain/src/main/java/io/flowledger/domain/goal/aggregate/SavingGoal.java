@@ -36,16 +36,16 @@ public class SavingGoal {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "account_id")
+  @Column(name = "account_id", nullable = true)
   private UUID accountId;
 
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 200)
   private String name;
 
-  @Column(name = "target_amount", nullable = false)
+  @Column(name = "target_amount", nullable = false, precision = 19, scale = 4)
   private BigDecimal targetAmount;
 
-  @Column(name = "target_date")
+  @Column(name = "target_date", nullable = true)
   private LocalDate targetDate;
 
   @Column(name = "created_at", nullable = false)

@@ -36,10 +36,10 @@ public class TopExpense {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "category_id")
+  @Column(name = "category_id", nullable = true)
   private UUID categoryId;
 
-  @Column(name = "amount", nullable = false)
+  @Column(name = "amount", nullable = false, precision = 19, scale = 4)
   private BigDecimal amount;
 
   @Column(name = "period_start", nullable = false)

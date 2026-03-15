@@ -34,10 +34,10 @@ public class Backup {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "backup_type", nullable = false)
+  @Column(name = "backup_type", nullable = false, length = 50)
   private String backupType;
 
-  @Column(name = "storage_url")
+  @Column(name = "storage_url", nullable = true, length = 1000)
   private String storageUrl;
 
   @Column(name = "created_at", nullable = false)

@@ -33,19 +33,19 @@ public class ExchangeRate {
   @GeneratedValue
   private UUID id;
 
-  @Column(name = "base_currency_code", nullable = false)
+  @Column(name = "base_currency_code", nullable = false, length = 10)
   private String baseCurrencyCode;
 
-  @Column(name = "quote_currency_code", nullable = false)
+  @Column(name = "quote_currency_code", nullable = false, length = 10)
   private String quoteCurrencyCode;
 
-  @Column(name = "rate", nullable = false)
+  @Column(name = "rate", nullable = false, precision = 19, scale = 6)
   private BigDecimal rate;
 
   @Column(name = "rate_date", nullable = false)
   private LocalDate rateDate;
 
-  @Column(name = "source")
+  @Column(name = "source", nullable = true, length = 100)
   private String source;
 
   @Column(name = "created_at", nullable = false)

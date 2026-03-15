@@ -43,25 +43,25 @@ public class Account {
   @JoinColumn(name = "user_id", nullable = false, insertable = false, updatable = false)
   private User user;
 
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 200)
   private String name;
 
-  @Column(name = "account_type", nullable = false)
+  @Column(name = "account_type", nullable = false, length = 100)
   private String accountType;
 
-  @Column(name = "currency_code", nullable = false)
+  @Column(name = "currency_code", nullable = false, length = 10)
   private String currencyCode;
 
-  @Column(name = "opening_balance", nullable = false)
+  @Column(name = "opening_balance", nullable = false, precision = 19, scale = 4)
   private BigDecimal openingBalance;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "status", nullable = false, length = 50)
   private String status;
 
-  @Column(name = "icon")
+  @Column(name = "icon", nullable = true, length = 200)
   private String icon;
 
-  @Column(name = "color")
+  @Column(name = "color", nullable = true, length = 20)
   private String color;
 
   @Column(name = "created_at", nullable = false)

@@ -34,7 +34,7 @@ public class NotificationPreference {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "channel", nullable = false)
+  @Column(name = "channel", nullable = false, length = 50)
   private String channel;
 
   @Column(name = "enabled", nullable = false)

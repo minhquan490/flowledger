@@ -34,10 +34,10 @@ public class ExportJob {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "export_type", nullable = false)
+  @Column(name = "export_type", nullable = false, length = 50)
   private String exportType;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "status", nullable = false, length = 50)
   private String status;
 
   @Column(name = "created_at", nullable = false)

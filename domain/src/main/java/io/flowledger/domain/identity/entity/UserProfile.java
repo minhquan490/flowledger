@@ -34,13 +34,13 @@ public class UserProfile {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "display_name")
+  @Column(name = "display_name", nullable = true, length = 200)
   private String displayName;
 
-  @Column(name = "avatar_url")
+  @Column(name = "avatar_url", nullable = true, length = 500)
   private String avatarUrl;
 
-  @Column(name = "locale")
+  @Column(name = "locale", nullable = true, length = 20)
   private String locale;
 
   @Column(name = "created_at", nullable = false)

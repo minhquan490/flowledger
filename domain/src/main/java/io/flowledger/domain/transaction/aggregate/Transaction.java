@@ -35,25 +35,25 @@ public class Transaction {
   @Column(name = "account_id", nullable = false)
   private UUID accountId;
 
-  @Column(name = "category_id")
+  @Column(name = "category_id", nullable = true)
   private UUID categoryId;
 
-  @Column(name = "amount", nullable = false)
+  @Column(name = "amount", nullable = false, precision = 19, scale = 4)
   private BigDecimal amount;
 
-  @Column(name = "currency_code", nullable = false)
+  @Column(name = "currency_code", nullable = false, length = 10)
   private String currencyCode;
 
-  @Column(name = "transaction_type", nullable = false)
+  @Column(name = "transaction_type", nullable = false, length = 50)
   private String transactionType;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "status", nullable = false, length = 50)
   private String status;
 
-  @Column(name = "description")
+  @Column(name = "description", nullable = true, length = 500)
   private String description;
 
-  @Column(name = "location")
+  @Column(name = "location", nullable = true, length = 200)
   private String location;
 
   @Column(name = "occurred_at", nullable = false)

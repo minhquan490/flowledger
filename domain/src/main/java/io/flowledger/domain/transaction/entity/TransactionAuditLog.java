@@ -34,10 +34,10 @@ public class TransactionAuditLog {
   @Column(name = "transaction_id", nullable = false)
   private UUID transactionId;
 
-  @Column(name = "action", nullable = false)
+  @Column(name = "action", nullable = false, length = 100)
   private String action;
 
-  @Column(name = "details")
+  @Column(name = "details", nullable = true, length = 1000)
   private String details;
 
   @Column(name = "created_at", nullable = false)

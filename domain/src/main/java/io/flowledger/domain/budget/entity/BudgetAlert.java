@@ -35,10 +35,10 @@ public class BudgetAlert {
   @Column(name = "budget_id", nullable = false)
   private UUID budgetId;
 
-  @Column(name = "alert_type", nullable = false)
+  @Column(name = "alert_type", nullable = false, length = 100)
   private String alertType;
 
-  @Column(name = "threshold")
+  @Column(name = "threshold", nullable = true, precision = 19, scale = 4)
   private BigDecimal threshold;
 
   @Column(name = "created_at", nullable = false)

@@ -31,10 +31,10 @@ public class User {
   @GeneratedValue
   private UUID id;
 
-  @Column(name = "email", nullable = false, unique = true)
+  @Column(name = "email", nullable = false, unique = true, length = 320)
   private String email;
 
-  @Column(name = "status", nullable = false)
+  @Column(name = "status", nullable = false, length = 50)
   private String status;
 
   @Column(name = "created_at", nullable = false)

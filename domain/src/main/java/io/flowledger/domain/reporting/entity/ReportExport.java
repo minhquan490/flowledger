@@ -34,10 +34,10 @@ public class ReportExport {
   @Column(name = "report_id", nullable = false)
   private UUID reportId;
 
-  @Column(name = "export_type", nullable = false)
+  @Column(name = "export_type", nullable = false, length = 50)
   private String exportType;
 
-  @Column(name = "file_url")
+  @Column(name = "file_url", nullable = true, length = 1000)
   private String fileUrl;
 
   @Column(name = "created_at", nullable = false)

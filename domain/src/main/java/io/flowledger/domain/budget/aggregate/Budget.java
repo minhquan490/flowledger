@@ -35,19 +35,19 @@ public class Budget {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 200)
   private String name;
 
-  @Column(name = "category_id")
+  @Column(name = "category_id", nullable = true)
   private UUID categoryId;
 
-  @Column(name = "account_id")
+  @Column(name = "account_id", nullable = true)
   private UUID accountId;
 
-  @Column(name = "amount", nullable = false)
+  @Column(name = "amount", nullable = false, precision = 19, scale = 4)
   private BigDecimal amount;
 
-  @Column(name = "period_type", nullable = false)
+  @Column(name = "period_type", nullable = false, length = 50)
   private String periodType;
 
   @Column(name = "created_at", nullable = false)

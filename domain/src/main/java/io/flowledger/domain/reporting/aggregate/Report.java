@@ -34,10 +34,10 @@ public class Report {
   @Column(name = "user_id", nullable = false)
   private UUID userId;
 
-  @Column(name = "report_type", nullable = false)
+  @Column(name = "report_type", nullable = false, length = 100)
   private String reportType;
 
-  @Column(name = "parameters")
+  @Column(name = "parameters", nullable = true, length = 2000)
   private String parameters;
 
   @Column(name = "created_at", nullable = false)

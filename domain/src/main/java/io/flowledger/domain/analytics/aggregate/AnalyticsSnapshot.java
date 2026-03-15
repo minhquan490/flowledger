@@ -38,7 +38,7 @@ public class AnalyticsSnapshot {
   @Column(name = "snapshot_date", nullable = false)
   private LocalDate snapshotDate;
 
-  @Column(name = "payload")
+  @Column(name = "payload", nullable = true, length = 2000)
   private String payload;
 
   @Column(name = "created_at", nullable = false)
