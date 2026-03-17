@@ -1,6 +1,8 @@
 @import "tailwindcss";
+@import "@medisphere/common-ui/tailwind.css";
 
 @import "tw-animate-css";
+
 
 @custom-variant dark (&:is(.dark *));
 
