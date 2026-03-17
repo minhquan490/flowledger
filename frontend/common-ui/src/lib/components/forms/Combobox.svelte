@@ -1,0 +1,198 @@
+<script lang="ts">
+  import CheckIcon from "@lucide/svelte/icons/check";
+  import ChevronsUpDownIcon from "@lucide/svelte/icons/chevrons-up-down";
+
+  import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList
+  } from "../ui/command/index.js";
+
+  import { Button } from "../ui/button/index.js";
+  import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover/index.js";
+
+  import { cn } from "../../utils.js";
+
+  import TanStackFormField from "./TanStackFormField.svelte";
+
+  import type { AnyFieldApi } from "@tanstack/form-core";
+  import type {
+    AnyTanStackFormApi,
+    ComboboxProps,
+    TanStackFieldValidators,
+    TanStackShowError
+  } from "./types.js";
+
+  let {
+    form,
+    name,
+    label,
+    required,
+    helperText,
+    showError,
+    validators,
+
+    options = [],
+    placeholder = "Select option",
+    searchPlaceholder = "Search...",
+    emptyText = "No option found.",
+
+    class: className,
+    contentClass,
+    disabled = false
+  }: ComboboxProps & {
+    form?: AnyTanStackFormApi;
+    name?: string;
+    label?: string;
+    required?: boolean;
+    helperText?: string;
+    showError?: TanStackShowError;
+    validators?: TanStackFieldValidators;
+  } = $props();
+
+  let open = $state(false);
+  let value = $state("");
+
+  function renderCombobox(fieldApi?: AnyFieldApi) {
+    const currentValue = fieldApi
+      ? String(fieldApi.state.value ?? "")
+      : value;
+
+    const selected = options.find((o) => o.value === currentValue);
+
+    function select(v: string) {
+      if (fieldApi) {
+        fieldApi.handleChange(v);
+        fieldApi.handleBlur();
+      } else {
+        value = v;
+      }
+
+      open = false;
+    }
+
+    return { currentValue, selected, select };
+  }
+</script>
+
+{#if form && name}
+  <!-- TanStack mode -->
+  <TanStackFormField
+    {form}
+    {name}
+    {label}
+    required={required ?? false}
+    {helperText}
+    showError={showError ?? "never"}
+    {validators}
+    class={className}
+  >
+    {#snippet control(fieldApi: AnyFieldApi)}
+      {@const ctx = renderCombobox(fieldApi)}
+
+      <Popover
+        open={open}
+        onOpenChange={(next) => {
+          open = next;
+          if (!next) fieldApi.handleBlur();
+        }}
+      >
+        <PopoverTrigger>
+          {#snippet child({ props })}
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              class={cn("w-full justify-between")}
+              {disabled}
+              {...props}
+            >
+              {ctx.selected?.label ?? placeholder}
+              <ChevronsUpDownIcon class="opacity-50" />
+            </Button>
+          {/snippet}
+        </PopoverTrigger>
+
+        <PopoverContent class={cn("w-[var(--bits-popover-anchor-width)] p-0", contentClass)}>
+          <Command>
+            <CommandInput placeholder={searchPlaceholder} />
+            <CommandList>
+              <CommandEmpty>{emptyText}</CommandEmpty>
+
+              <CommandGroup>
+                {#each options as option (option.value)}
+                  <CommandItem
+                    value={option.value}
+                    keywords={option.keywords}
+                    disabled={option.disabled}
+                    onSelect={() => ctx.select(option.value)}
+                  >
+                    <CheckIcon
+                      class={cn(
+                        "mr-2",
+                        ctx.currentValue === option.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                {/each}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    {/snippet}
+  </TanStackFormField>
+{:else}
+  <!-- Standalone mode -->
+  {@const ctx = renderCombobox()}
+
+  <Popover open={open} onOpenChange={(v) => (open = v)}>
+    <PopoverTrigger>
+      {#snippet child({ props })}
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          class={cn("w-full justify-between", className)}
+          {disabled}
+          {...props}
+        >
+          {ctx.selected?.label ?? placeholder}
+          <ChevronsUpDownIcon class="opacity-50" />
+        </Button>
+      {/snippet}
+    </PopoverTrigger>
+
+    <PopoverContent class={cn("w-[var(--bits-popover-anchor-width)] p-0", contentClass)}>
+      <Command>
+        <CommandInput placeholder={searchPlaceholder} />
+        <CommandList>
+          <CommandEmpty>{emptyText}</CommandEmpty>
+
+          <CommandGroup>
+            {#each options as option (option.value)}
+              <CommandItem
+                value={option.value}
+                keywords={option.keywords}
+                disabled={option.disabled}
+                onSelect={() => ctx.select(option.value)}
+              >
+                <CheckIcon
+                  class={cn(
+                    "mr-2",
+                    ctx.currentValue === option.value ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                {option.label}
+              </CommandItem>
+            {/each}
+          </CommandGroup>
+        </CommandList>
+      </Command>
+    </PopoverContent>
+  </Popover>
+{/if}

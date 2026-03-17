@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "types": ["svelte"],
+    "declaration": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "checkJs": true,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "baseUrl": ".",
+    "paths": {
+      "@medisphere/common-ui": ["src/lib/index.ts"],
+      "@medisphere/common-ui/*": ["src/lib/*"]
+    }
+  },
+  "include": ["src/lib/**/*", "src/**/*.d.ts"],
+  "exclude": ["src/**/*.stories.ts", ".storybook/**/*"]
+}
