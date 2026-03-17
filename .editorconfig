@@ -83,19 +83,7 @@ ij_yaml_space_before_colon = false
 ij_yaml_spaces_within_braces = true
 ij_yaml_spaces_within_brackets = true
 
-# ------------------------
-# Gradle (Groovy)
-# ------------------------
-[*.gradle]
-indent_size = 2
-indent_style = space
-tab_width = 2
-max_line_length = 120
-
-# ------------------------
-# Gradle Kotlin DSL
-# ------------------------
-[*.gradle.kts]
+[{*.gradle, .prettierrc, *.gradle.kts, .eslintrc.js, .eslint.config.js}]
 indent_size = 2
 indent_style = space
 tab_width = 2

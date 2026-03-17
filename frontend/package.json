@@ -1,0 +1,8 @@
+{
+  "name": "flowledger-frontend",
+  "private": true,
+  "workspaces": [
+    "admin-ui",
+    "common-ui"
+  ]
+}

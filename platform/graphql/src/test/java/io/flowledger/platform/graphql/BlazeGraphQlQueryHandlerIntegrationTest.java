@@ -45,10 +45,7 @@ import static org.mockito.Mockito.when;
 /**
  * Integration test for Blaze-backed generic GraphQL handler wiring.
  */
-@SpringBootTest(
-    classes = BlazeGraphQlQueryHandlerIntegrationTest.TestApplication.class,
-    properties = "spring.autoconfigure.exclude=io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration"
-)
+@SpringBootTest(classes = BlazeGraphQlQueryHandlerIntegrationTest.TestApplication.class, properties = "spring.autoconfigure.exclude=io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration")
 class BlazeGraphQlQueryHandlerIntegrationTest {
 
   @Autowired
@@ -63,10 +60,11 @@ class BlazeGraphQlQueryHandlerIntegrationTest {
   private CriteriaBuilder<AccountEntity> criteriaBuilder;
 
   /**
-   * Configures mock beans, captures the criteria builder, and sets up Blaze view discovery.
+   * Configures mock beans, captures the criteria builder, and sets up Blaze view
+   * discovery.
    */
   @BeforeEach
-  @SuppressWarnings({"rawtypes", "unchecked"})
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   void configureMocks() {
     criteriaBuilder = org.mockito.Mockito.mock(CriteriaBuilder.class);
     FullQueryBuilder viewQuery = org.mockito.Mockito.mock(FullQueryBuilder.class);
@@ -74,12 +72,13 @@ class BlazeGraphQlQueryHandlerIntegrationTest {
     RestrictionBuilder restrictionBuilder = org.mockito.Mockito.mock(RestrictionBuilder.class);
 
     when(criteriaBuilderFactory.create(entityManager, AccountEntity.class)).thenReturn(criteriaBuilder);
-    when(entityViewManager.applySetting(any(EntityViewSetting.class), any(CriteriaBuilder.class))).thenReturn(viewQuery);
+    when(entityViewManager.applySetting(any(EntityViewSetting.class), any(CriteriaBuilder.class)))
+        .thenReturn(viewQuery);
     when(viewQuery.page(0, 1)).thenReturn(pagedQuery);
     doReturn(restrictionBuilder).when(criteriaBuilder).where(anyString());
     doReturn(null).when(restrictionBuilder).eq(any());
-    SimplePagedList<Object> results =
-        new SimplePagedList<>(List.of(Map.of("id", "acc_100", "name", "Primary")), 1L, 0, 0, 1);
+    SimplePagedList<Object> results = new SimplePagedList<>(List.of(Map.of("id", "acc_100", "name", "Primary")), 1L, 0,
+        0, 1);
     when(pagedQuery.getResultList()).thenReturn(results);
   }
 
@@ -117,7 +116,8 @@ class BlazeGraphQlQueryHandlerIntegrationTest {
   }
 
   /**
-   * Verifies the generic Blaze handler is invoked for search queries with filters.
+   * Verifies the generic Blaze handler is invoked for search queries with
+   * filters.
    */
   @Test
   void searchUsesBlazeHandler() {
@@ -211,15 +211,14 @@ class BlazeGraphQlQueryHandlerIntegrationTest {
      * Exposes the Blaze query builder.
      *
      * @param criteriaBuilderFactory the criteria builder factory
-     * @param entityManager the entity manager
+     * @param entityManager          the entity manager
      * @return the Blaze query builder
      */
     @Bean
     BlazeQueryBuilder blazeQueryBuilder(
         CriteriaBuilderFactory criteriaBuilderFactory,
-        EntityManager entityManager
-    ) {
-      return new BlazeQueryBuilder(criteriaBuilderFactory, entityManager, Collections.emptyList());
+        EntityManager entityManager) {
+      return new BlazeQueryBuilder(criteriaBuilderFactory, Collections.emptyList());
     }
   }
 
@@ -235,6 +234,7 @@ class BlazeGraphQlQueryHandlerIntegrationTest {
   @GraphQlModel("account")
   interface AccountView {
     String getId();
+
     String getName();
   }
 

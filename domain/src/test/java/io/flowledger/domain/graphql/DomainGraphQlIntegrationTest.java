@@ -41,10 +41,7 @@ import static org.mockito.Mockito.when;
 /**
  * Integration test ensuring GraphQL queries can resolve domain views.
  */
-@SpringBootTest(
-    classes = DomainGraphQlIntegrationTest.TestApplication.class,
-    properties = "spring.autoconfigure.exclude=io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration"
-)
+@SpringBootTest(classes = DomainGraphQlIntegrationTest.TestApplication.class, properties = "spring.autoconfigure.exclude=io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration")
 class DomainGraphQlIntegrationTest {
 
   @Autowired
@@ -66,7 +63,7 @@ class DomainGraphQlIntegrationTest {
    * Configures the Blaze query mocks for each test.
    */
   @BeforeEach
-  @SuppressWarnings({"rawtypes", "unchecked"})
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   void configureMocks() {
     CriteriaBuilder criteriaBuilder = org.mockito.Mockito.mock(CriteriaBuilder.class);
     FullQueryBuilder viewQuery = org.mockito.Mockito.mock(FullQueryBuilder.class);
@@ -91,8 +88,7 @@ class DomainGraphQlIntegrationTest {
         1L,
         0,
         0,
-        1
-    );
+        1);
     doReturn(results).when(pagedQuery).getResultList();
 
     String document = """
@@ -129,8 +125,7 @@ class DomainGraphQlIntegrationTest {
         1L,
         0,
         0,
-        1
-    );
+        1);
     doReturn(results).when(pagedQuery).getResultList();
 
     String document = """
@@ -218,15 +213,14 @@ class DomainGraphQlIntegrationTest {
      * Exposes the Blaze query builder.
      *
      * @param criteriaBuilderFactory the criteria builder factory
-     * @param entityManager the entity manager
+     * @param entityManager          the entity manager
      * @return the Blaze query builder
      */
     @Bean
     BlazeQueryBuilder blazeQueryBuilder(
         CriteriaBuilderFactory criteriaBuilderFactory,
-        EntityManager entityManager
-    ) {
-      return new BlazeQueryBuilder(criteriaBuilderFactory, entityManager, List.of());
+        EntityManager entityManager) {
+      return new BlazeQueryBuilder(criteriaBuilderFactory, List.of());
     }
   }
 
@@ -245,11 +239,11 @@ class DomainGraphQlIntegrationTest {
     /**
      * Creates a paged list instance.
      *
-     * @param items the items
-     * @param totalSize total item count
-     * @param page current page
+     * @param items       the items
+     * @param totalSize   total item count
+     * @param page        current page
      * @param firstResult first result index
-     * @param maxResults max results
+     * @param maxResults  max results
      */
     SimplePagedList(List<T> items, long totalSize, int page, int firstResult, int maxResults) {
       super(items);

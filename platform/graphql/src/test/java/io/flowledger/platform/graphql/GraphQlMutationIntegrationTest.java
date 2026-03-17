@@ -6,6 +6,9 @@ import io.flowledger.platform.query.blaze.BlazeViewLoader;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +21,23 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.test.tester.ExecutionGraphQlServiceTester;
 
+import com.blazebit.persistence.CriteriaBuilderFactory;
+import com.blazebit.persistence.view.CreatableEntityView;
+import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.UpdatableEntityView;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Integration test to verify the GraphQL mutation pipeline.
  */
-@SpringBootTest(
-    classes = GraphQlMutationIntegrationTest.TestApplication.class,
-    properties = "spring.autoconfigure.exclude=io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration"
-)
+@SpringBootTest(classes = GraphQlMutationIntegrationTest.TestApplication.class, properties = "spring.autoconfigure.exclude=io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration")
 class GraphQlMutationIntegrationTest {
 
   @Autowired
@@ -179,7 +187,7 @@ class GraphQlMutationIntegrationTest {
         view.setId("acc_new");
         return view;
       });
-      when(manager.find(org.mockito.Mockito.any(EntityManager.class), org.mockito.Mockito.eq(AccountMutationView.class), org.mockito.Mockito.any()))
+      when(manager.find(any(EntityManager.class), eq(AccountMutationView.class), any()))
           .thenAnswer(invocation -> {
             AccountMutationViewImpl view = new AccountMutationViewImpl();
             Object idValue = invocation.getArgument(2);
@@ -195,23 +203,22 @@ class GraphQlMutationIntegrationTest {
      * @return criteria builder factory
      */
     @Bean
-    com.blazebit.persistence.CriteriaBuilderFactory criteriaBuilderFactory() {
-      return org.mockito.Mockito.mock(com.blazebit.persistence.CriteriaBuilderFactory.class);
+    CriteriaBuilderFactory criteriaBuilderFactory() {
+      return mock(CriteriaBuilderFactory.class);
     }
 
     /**
      * Exposes the Blaze query builder.
      *
      * @param criteriaBuilderFactory the criteria builder factory
-     * @param entityManager the entity manager
+     * @param entityManager          the entity manager
      * @return the Blaze query builder
      */
     @Bean
     BlazeQueryBuilder blazeQueryBuilder(
-        com.blazebit.persistence.CriteriaBuilderFactory criteriaBuilderFactory,
-        EntityManager entityManager
-    ) {
-      return new BlazeQueryBuilder(criteriaBuilderFactory, entityManager, java.util.List.of());
+        CriteriaBuilderFactory criteriaBuilderFactory,
+        EntityManager entityManager) {
+      return new BlazeQueryBuilder(criteriaBuilderFactory, java.util.List.of());
     }
 
   }
@@ -220,54 +227,20 @@ class GraphQlMutationIntegrationTest {
    * Dummy entity for mutation view mapping.
    */
   @Entity
+  @Getter
+  @Setter
   private static class AccountEntity {
     @Id
     private String id;
     private String name;
-
-    /**
-     * Returns the account id.
-     *
-     * @return the account id
-     */
-    public String getId() {
-      return id;
-    }
-
-    /**
-     * Sets the account id.
-     *
-     * @param id the account id
-     */
-    public void setId(String id) {
-      this.id = id;
-    }
-
-    /**
-     * Returns the account name.
-     *
-     * @return the account name
-     */
-    public String getName() {
-      return name;
-    }
-
-    /**
-     * Sets the account name.
-     *
-     * @param name the account name
-     */
-    public void setName(String name) {
-      this.name = name;
-    }
   }
 
   /**
    * Mutation view for account data.
    */
-  @com.blazebit.persistence.view.EntityView(AccountEntity.class)
-  @com.blazebit.persistence.view.CreatableEntityView
-  @com.blazebit.persistence.view.UpdatableEntityView
+  @EntityView(AccountEntity.class)
+  @CreatableEntityView
+  @UpdatableEntityView
   @GraphQlModel("account")
   private interface AccountMutationView {
     /**
@@ -302,48 +275,10 @@ class GraphQlMutationIntegrationTest {
   /**
    * Simple mutable implementation of the account mutation view.
    */
+  @Getter
+  @Setter
   private static class AccountMutationViewImpl implements AccountMutationView {
     private String id;
     private String name;
-
-    /**
-     * Returns the account id.
-     *
-     * @return the account id
-     */
-    @Override
-    public String getId() {
-      return id;
-    }
-
-    /**
-     * Sets the account id.
-     *
-     * @param id the account id
-     */
-    @Override
-    public void setId(String id) {
-      this.id = id;
-    }
-
-    /**
-     * Returns the account name.
-     *
-     * @return the account name
-     */
-    @Override
-    public String getName() {
-      return name;
-    }
-
-    /**
-     * Sets the account name.
-     *
-     * @param name the account name
-     */
-    @Override
-    public void setName(String name) {
-      this.name = name;
-    }
   }
 }
