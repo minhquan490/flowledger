@@ -1,6 +1,7 @@
 package io.flowledger.domain.account.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.account.entity.AccountReconciliation;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
@@ -20,6 +21,7 @@ public interface AccountReconciliationView {
    *
    * @return the reconciliation id
    */
+  @IdMapping
   UUID getId();
 
   /**

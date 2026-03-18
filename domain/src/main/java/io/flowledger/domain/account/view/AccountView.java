@@ -1,6 +1,7 @@
 package io.flowledger.domain.account.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.account.aggregate.Account;
 import io.flowledger.domain.identity.view.UserView;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
@@ -21,6 +22,7 @@ public interface AccountView {
    *
    * @return the account id
    */
+  @IdMapping
   UUID getId();
 
   /**

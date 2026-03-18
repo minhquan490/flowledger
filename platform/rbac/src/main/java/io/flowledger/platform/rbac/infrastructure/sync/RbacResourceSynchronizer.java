@@ -75,7 +75,7 @@ public class RbacResourceSynchronizer {
 
     for (String model : modelNames) {
       if (existingByName.containsKey(model)) {
-        updateIfSystemManaged(existingByName.get(model), now);
+        updateResourceTimestamp(existingByName.get(model), now);
       } else {
         persistNewResource(model, now);
       }
@@ -89,7 +89,10 @@ public class RbacResourceSynchronizer {
    * @return a non-null map of model name to view class
    */
   private Map<String, Class<?>> collectModelViews() {
-    return modelRegistry.getViewsByModel().values().stream()
+    return modelRegistry.getViewsByModel()
+        .values()
+        .stream()
+        .filter(definition -> !(definition.isMutationView() && definition.isReferenceView()))
         .collect(Collectors.toMap(
             BlazeGraphQlViewDefinition::model,
             BlazeGraphQlViewDefinition::viewClass,
@@ -123,13 +126,13 @@ public class RbacResourceSynchronizer {
   }
 
   /**
-   * Updates the {@code updatedAt} timestamp on a system-managed resource.
+   * Updates the {@code updatedAt} timestamp on an existing resource.
    *
    * @param existing the existing resource entity
    * @param now the current timestamp
    */
-  private void updateIfSystemManaged(RbacResource existing, Instant now) {
-    if (!existing.isSystemManaged()) {
+  private void updateResourceTimestamp(RbacResource existing, Instant now) {
+    if (existing == null) {
       return;
     }
     existing.setUpdatedAt(now);
@@ -137,7 +140,7 @@ public class RbacResourceSynchronizer {
   }
 
   /**
-   * Persists a new system-managed resource entity.
+   * Persists a new resource entity.
    *
    * @param model the resource name
    * @param now the current timestamp
@@ -145,7 +148,6 @@ public class RbacResourceSynchronizer {
   private void persistNewResource(String model, Instant now) {
     RbacResource resource = new RbacResource();
     resource.setName(model);
-    resource.setSystemManaged(true);
     resource.setCreatedAt(now);
     resource.setUpdatedAt(now);
     entityManager.persist(resource);
@@ -166,7 +168,7 @@ public class RbacResourceSynchronizer {
   }
 
   /**
-   * Persists the default system-managed role.
+   * Persists the default role.
    */
   private void persistDefaultRole() {
     Instant now = Instant.now();
@@ -174,14 +176,13 @@ public class RbacResourceSynchronizer {
     role.setCode(DEFAULT_ROLE_CODE);
     role.setName(DEFAULT_ROLE_NAME);
     role.setDefaultRole(true);
-    role.setSystemManaged(true);
     role.setCreatedAt(now);
     role.setUpdatedAt(now);
     entityManager.persist(role);
   }
 
   /**
-   * Ensures the system-managed administrator role exists.
+   * Ensures the administrator role exists.
    *
    * @return the administrator role entity
    */
@@ -199,7 +200,7 @@ public class RbacResourceSynchronizer {
   }
 
   /**
-   * Persists the system-managed administrator role.
+   * Persists the administrator role.
    *
    * @return the newly persisted administrator role
    */
@@ -209,7 +210,6 @@ public class RbacResourceSynchronizer {
     role.setCode(DEFAULT_ADMIN_ROLE_CODE);
     role.setName(DEFAULT_ADMIN_ROLE_NAME);
     role.setDefaultRole(false);
-    role.setSystemManaged(true);
     role.setCreatedAt(now);
     role.setUpdatedAt(now);
     entityManager.persist(role);
@@ -299,6 +299,7 @@ public class RbacResourceSynchronizer {
     ).getResultList();
     Map<String, RbacResourceField> existingByKey = existingFields.stream()
         .collect(Collectors.toMap(this::resourceFieldKey, Function.identity(), (first, _) -> first));
+    Map<String, RbacResourceField> expectedByKey = new LinkedHashMap<>();
     Instant now = Instant.now();
     for (Map.Entry<String, Class<?>> modelView : modelViews.entrySet()) {
       String model = modelView.getKey();
@@ -308,6 +309,7 @@ public class RbacResourceSynchronizer {
       }
       for (FieldMethod fieldMethod : extractFieldMethods(modelView.getValue())) {
         String key = resourceFieldKey(resource.getId(), fieldMethod.fieldName());
+        expectedByKey.putIfAbsent(key, placeholderResourceField(resource.getId(), fieldMethod.fieldName()));
         if (!existingByKey.containsKey(key)) {
           persistResourceField(resource.getId(), fieldMethod.fieldName(), fieldMethod.sourceMethodName(), now);
           existingByKey.put(key, placeholderResourceField(resource.getId(), fieldMethod.fieldName()));
@@ -316,7 +318,29 @@ public class RbacResourceSynchronizer {
         }
       }
     }
+    deleteStaleResourceFields(existingFields, expectedByKey);
     entityManager.flush();
+  }
+
+  /**
+   * Deletes resource fields that are not present in the current model views.
+   *
+   * @param existingFields the current resource field entities
+   * @param expectedByKey the expected resource fields keyed by resource and field name
+   */
+  private void deleteStaleResourceFields(
+      List<RbacResourceField> existingFields,
+      Map<String, RbacResourceField> expectedByKey
+  ) {
+    for (RbacResourceField resourceField : existingFields) {
+      if (resourceField == null) {
+        continue;
+      }
+      String key = resourceFieldKey(resourceField);
+      if (!expectedByKey.containsKey(key)) {
+        entityManager.remove(resourceField);
+      }
+    }
   }
 
   /**
@@ -436,7 +460,6 @@ public class RbacResourceSynchronizer {
     permission.setResourceId(resourceId);
     permission.setAction(action);
     permission.setAllowed(true);
-    permission.setSystemManaged(true);
     permission.setCreatedAt(now);
     permission.setUpdatedAt(now);
     entityManager.persist(permission);
@@ -474,7 +497,6 @@ public class RbacResourceSynchronizer {
     permission.setResourceFieldId(resourceFieldId);
     permission.setAction(action);
     permission.setAllowed(true);
-    permission.setSystemManaged(true);
     permission.setCreatedAt(now);
     permission.setUpdatedAt(now);
     entityManager.persist(permission);
@@ -508,21 +530,20 @@ public class RbacResourceSynchronizer {
     resourceField.setResourceId(resourceId);
     resourceField.setFieldName(fieldName);
     resourceField.setSourceMethodName(sourceMethodName);
-    resourceField.setSystemManaged(true);
     resourceField.setCreatedAt(now);
     resourceField.setUpdatedAt(now);
     entityManager.persist(resourceField);
   }
 
   /**
-   * Updates an existing synchronized resource field when it is system-managed.
+   * Updates an existing synchronized resource field.
    *
    * @param resourceField the existing resource field
    * @param sourceMethodName the current source method name
    * @param now the current timestamp
    */
   private void updateResourceField(RbacResourceField resourceField, String sourceMethodName, Instant now) {
-    if (resourceField == null || !resourceField.isSystemManaged()) {
+    if (resourceField == null) {
       return;
     }
     resourceField.setSourceMethodName(sourceMethodName);
@@ -611,7 +632,6 @@ public class RbacResourceSynchronizer {
     RbacResourceField field = new RbacResourceField();
     field.setResourceId(resourceId);
     field.setFieldName(fieldName);
-    field.setSystemManaged(true);
     return field;
   }
 

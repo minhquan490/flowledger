@@ -1,0 +1,92 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-rbac-remove-system-managed-rbac-resources
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          columnExists:
+            tableName: rbac_resources
+            columnName: system_managed
+      changes:
+        - dropColumn:
+            tableName: rbac_resources
+            columnName: system_managed
+  - changeSet:
+      id: 006-rbac-remove-system-managed-rbac-roles
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          columnExists:
+            tableName: rbac_roles
+            columnName: system_managed
+      changes:
+        - dropColumn:
+            tableName: rbac_roles
+            columnName: system_managed
+  - changeSet:
+      id: 006-rbac-remove-system-managed-rbac-role-resource-permissions
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          columnExists:
+            tableName: rbac_role_resource_permissions
+            columnName: system_managed
+      changes:
+        - dropColumn:
+            tableName: rbac_role_resource_permissions
+            columnName: system_managed
+  - changeSet:
+      id: 006-rbac-remove-system-managed-rbac-role-field-permissions
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          columnExists:
+            tableName: rbac_role_field_permissions
+            columnName: system_managed
+      changes:
+        - dropColumn:
+            tableName: rbac_role_field_permissions
+            columnName: system_managed
+  - changeSet:
+      id: 006-rbac-remove-system-managed-rbac-role-row-conditions
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          columnExists:
+            tableName: rbac_role_row_conditions
+            columnName: system_managed
+      changes:
+        - dropColumn:
+            tableName: rbac_role_row_conditions
+            columnName: system_managed
+  - changeSet:
+      id: 006-rbac-remove-system-managed-rbac-resource-fields
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          columnExists:
+            tableName: rbac_resource_fields
+            columnName: system_managed
+      changes:
+        - dropColumn:
+            tableName: rbac_resource_fields
+            columnName: system_managed
+  - changeSet:
+      id: 006-rbac-remove-system-managed-rbac-role-field-action-permissions
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          columnExists:
+            tableName: rbac_role_field_action_permissions
+            columnName: system_managed
+      changes:
+        - dropColumn:
+            tableName: rbac_role_field_action_permissions
+            columnName: system_managed

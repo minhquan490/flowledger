@@ -1,6 +1,7 @@
 package io.flowledger.domain.analytics.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.analytics.aggregate.TopExpense;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
@@ -21,6 +22,7 @@ public interface TopExpenseView {
    *
    * @return the top expense id
    */
+  @IdMapping
   UUID getId();
 
   /**

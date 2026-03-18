@@ -35,11 +35,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: system_managed
-                  type: boolean
-                  constraints:
-                    nullable: false
-              - column:
                   name: created_at
                   type: timestamp
                   constraints:
@@ -76,11 +71,6 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: allowed
-                  type: boolean
-                  constraints:
-                    nullable: false
-              - column:
-                  name: system_managed
                   type: boolean
                   constraints:
                     nullable: false
@@ -146,13 +136,12 @@ databaseChangeLog:
             splitStatements: true
             stripComments: true
             sql: |
-              insert into rbac_resource_fields (id, resource_id, field_name, source_method_name, system_managed, created_at, updated_at)
+              insert into rbac_resource_fields (id, resource_id, field_name, source_method_name, created_at, updated_at)
               select
                 uuidv7(),
                 legacy.resource_id,
                 legacy.field_name,
                 concat('legacy:', legacy.field_name),
-                true,
                 now(),
                 now()
               from (
@@ -162,7 +151,7 @@ databaseChangeLog:
               on conflict (resource_id, field_name) do nothing;
 
               insert into rbac_role_field_action_permissions (
-                id, role_id, resource_field_id, action, allowed, system_managed, created_at, updated_at
+                id, role_id, resource_field_id, action, allowed, created_at, updated_at
               )
               select
                 uuidv7(),
@@ -170,7 +159,6 @@ databaseChangeLog:
                 rf.id,
                 'VIEW',
                 true,
-                f.system_managed,
                 now(),
                 now()
               from rbac_role_field_permissions f
@@ -180,7 +168,7 @@ databaseChangeLog:
               on conflict (role_id, resource_field_id, action) do nothing;
 
               insert into rbac_role_field_action_permissions (
-                id, role_id, resource_field_id, action, allowed, system_managed, created_at, updated_at
+                id, role_id, resource_field_id, action, allowed, created_at, updated_at
               )
               select
                 uuidv7(),
@@ -188,7 +176,6 @@ databaseChangeLog:
                 rf.id,
                 action_map.action,
                 true,
-                f.system_managed,
                 now(),
                 now()
               from rbac_role_field_permissions f

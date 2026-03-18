@@ -40,9 +40,6 @@ public class RbacResourceField {
   @Column(name = "source_method_name", nullable = false, length = 200)
   private String sourceMethodName;
 
-  @Column(name = "system_managed", nullable = false)
-  private boolean systemManaged;
-
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 

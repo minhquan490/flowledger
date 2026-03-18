@@ -1,6 +1,7 @@
 package io.flowledger.domain.importexport.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.importexport.aggregate.ExportJob;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
@@ -19,6 +20,7 @@ public interface ExportJobView {
    *
    * @return the export job id
    */
+  @IdMapping
   UUID getId();
 
   /**

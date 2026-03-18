@@ -136,6 +136,24 @@ public class BlazeGraphQlViewDefinition {
   }
 
   /**
+   * Resolves view is a mutation
+   *
+   * @return true if view is a mutation view
+   * */
+  public boolean isMutationView() {
+    return viewClass().getSimpleName().endsWith("MutationView");
+  }
+
+  /**
+   * Resolves view is a reference
+   *
+   * @return true if view is a reference view
+   * */
+  public boolean isReferenceView() {
+    return viewClass().getSimpleName().endsWith("RefView");
+  }
+
+  /**
    * Captures model metadata for view resolution.
    *
    * @param model the GraphQL model name

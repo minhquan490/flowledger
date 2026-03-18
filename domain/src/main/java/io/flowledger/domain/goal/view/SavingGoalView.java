@@ -1,6 +1,7 @@
 package io.flowledger.domain.goal.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.goal.aggregate.SavingGoal;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
@@ -21,6 +22,7 @@ public interface SavingGoalView {
    *
    * @return the saving goal id
    */
+  @IdMapping
   UUID getId();
 
   /**

@@ -28,11 +28,6 @@ databaseChangeLog:
                   name: description
                   type: varchar(500)
               - column:
-                  name: system_managed
-                  type: boolean
-                  constraints:
-                    nullable: false
-              - column:
                   name: created_at
                   type: timestamp
                   constraints:
@@ -64,11 +59,6 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: is_default
-                  type: boolean
-                  constraints:
-                    nullable: false
-              - column:
-                  name: system_managed
                   type: boolean
                   constraints:
                     nullable: false
@@ -141,11 +131,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: system_managed
-                  type: boolean
-                  constraints:
-                    nullable: false
-              - column:
                   name: created_at
                   type: timestamp
                   constraints:
@@ -190,11 +175,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: system_managed
-                  type: boolean
-                  constraints:
-                    nullable: false
-              - column:
                   name: created_at
                   type: timestamp
                   constraints:
@@ -226,11 +206,6 @@ databaseChangeLog:
               - column:
                   name: condition_json
                   type: text
-                  constraints:
-                    nullable: false
-              - column:
-                  name: system_managed
-                  type: boolean
                   constraints:
                     nullable: false
               - column:

@@ -1,6 +1,7 @@
 package io.flowledger.domain.currency.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.currency.entity.ExchangeRate;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
@@ -21,6 +22,7 @@ public interface ExchangeRateView {
    *
    * @return the exchange rate id
    */
+  @IdMapping
   UUID getId();
 
   /**

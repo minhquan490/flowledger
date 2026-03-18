@@ -3,6 +3,7 @@ package io.flowledger.platform.graphql.infrastructure.blaze;
 import com.blazebit.persistence.view.EntityViewManager;
 import io.flowledger.platform.graphql.application.GraphQLMutationPolicy;
 import io.flowledger.platform.graphql.application.GraphQlApiException;
+import io.flowledger.platform.graphql.application.GraphQlInternalException;
 import io.flowledger.platform.graphql.application.GraphQlMutationService;
 import io.flowledger.platform.graphql.domain.GraphQlMutationHandler;
 import io.flowledger.platform.graphql.domain.GraphQlMutationRequest;
@@ -58,6 +59,9 @@ public class BlazeGraphQlMutationHandler implements GraphQlMutationHandler {
   @Override
   public GraphQlMutationResult mutate(GraphQlMutationRequest request) {
     BlazeGraphQlViewDefinition definition = modelRegistry.viewFor(request.model());
+    if (!definition.isMutationView()) {
+      throw new GraphQlInternalException("Invalid GraphQL Mutation: " + request.model());
+    }
     GraphQLMutationPolicy mutationPolicy = definition.resolveMutationPolicy();
     mutationPolicy.validateWriteAccess(definition.model(), request);
     return switch (request.action()) {

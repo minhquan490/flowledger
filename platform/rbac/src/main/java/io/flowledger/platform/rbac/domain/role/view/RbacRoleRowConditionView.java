@@ -1,6 +1,7 @@
 package io.flowledger.platform.rbac.domain.role.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import io.flowledger.platform.rbac.domain.role.entity.RbacRoleRowCondition;
@@ -19,6 +20,7 @@ public interface RbacRoleRowConditionView {
    *
    * @return the condition id
    */
+  @IdMapping
   UUID getId();
 
   /**
@@ -41,13 +43,6 @@ public interface RbacRoleRowConditionView {
    * @return the condition JSON
    */
   String getConditionJson();
-
-  /**
-   * Returns whether the condition is system-managed.
-   *
-   * @return true when system-managed
-   */
-  boolean isSystemManaged();
 
   /**
    * Returns the creation timestamp.

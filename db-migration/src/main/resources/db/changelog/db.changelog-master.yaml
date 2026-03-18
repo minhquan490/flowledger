@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/changelog/changes/004-rbac-field-actions.yaml
   - include:
       file: db/changelog/changes/005-rbac-legacy-cleanup.yaml
+  - include:
+      file: db/changelog/changes/006-rbac-remove-system-managed.yaml

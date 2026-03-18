@@ -50,7 +50,6 @@ class RbacResourceSynchronizerIntegrationTest {
   private static final String MODEL_ACCOUNT = "account";
   private static final String MODEL_TRANSACTION = "transaction";
   private static final String MODEL_NORMALIZED = "normalized";
-  private static final String MODEL_MANUAL = "manual";
 
   private static final Map<String, Class<?>> MODEL_VIEWS = new LinkedHashMap<>();
 
@@ -136,32 +135,6 @@ class RbacResourceSynchronizerIntegrationTest {
     )).isZero();
   }
 
-  /**
-   * Verifies non-system-managed fields are not overwritten.
-   */
-  @Test
-  void synchronizeDoesNotOverwriteNonSystemManagedFields() {
-    MODEL_VIEWS.clear();
-    MODEL_VIEWS.put(MODEL_MANUAL, ManualSyncView.class);
-    synchronizer.synchronize();
-
-    entityManager.createNativeQuery(
-            "update rbac_resource_fields set system_managed = false, source_method_name = 'manualOverride' "
-                + "where resource_id = (select id from rbac_resources where name = 'manual')"
-        )
-        .executeUpdate();
-    entityManager.flush();
-    entityManager.clear();
-
-    synchronizer.synchronize();
-
-    String sourceMethodName = (String) entityManager.createNativeQuery(
-            "select source_method_name from rbac_resource_fields "
-                + "where resource_id = (select id from rbac_resources where name = 'manual') and field_name = 'name'"
-        )
-        .getSingleResult();
-    assertThat(sourceMethodName).isEqualTo("manualOverride");
-  }
 
   /**
    * Verifies synchronization handles empty model registry without creating resources.
@@ -317,14 +290,4 @@ class RbacResourceSynchronizerIntegrationTest {
     String helperMethod();
   }
 
-  /**
-   * GraphQL view contract for non-system-managed update guard tests.
-   */
-  @EntityView(RbacResource.class)
-  @GraphQlModel(value = MODEL_MANUAL, accessPolicy = RbacGraphQlAccessPolicy.class)
-  interface ManualSyncView {
-    String getName();
-
-    void setName(String value);
-  }
 }

@@ -1,6 +1,7 @@
 package io.flowledger.domain.notification.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.notification.aggregate.Notification;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
@@ -19,6 +20,7 @@ public interface NotificationView {
    *
    * @return the notification id
    */
+  @IdMapping
   UUID getId();
 
   /**

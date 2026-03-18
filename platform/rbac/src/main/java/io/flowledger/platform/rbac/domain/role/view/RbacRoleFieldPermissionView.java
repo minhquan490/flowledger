@@ -1,6 +1,7 @@
 package io.flowledger.platform.rbac.domain.role.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import io.flowledger.platform.rbac.domain.role.entity.RbacRoleFieldPermission;
@@ -19,6 +20,7 @@ public interface RbacRoleFieldPermissionView {
    *
    * @return the permission id
    */
+  @IdMapping
   UUID getId();
 
   /**
@@ -55,13 +57,6 @@ public interface RbacRoleFieldPermissionView {
    * @return true when writable
    */
   boolean isCanWrite();
-
-  /**
-   * Returns whether the permission is system-managed.
-   *
-   * @return true when system-managed
-   */
-  boolean isSystemManaged();
 
   /**
    * Returns the creation timestamp.

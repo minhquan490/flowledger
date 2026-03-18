@@ -43,9 +43,6 @@ public class RbacRoleFieldPermission {
   @Column(name = "can_write", nullable = false)
   private boolean canWrite;
 
-  @Column(name = "system_managed", nullable = false)
-  private boolean systemManaged;
-
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 

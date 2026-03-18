@@ -37,9 +37,6 @@ public class RbacRoleRowCondition {
   @Column(name = "condition_json", nullable = false, columnDefinition = "text")
   private String conditionJson;
 
-  @Column(name = "system_managed", nullable = false)
-  private boolean systemManaged;
-
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 

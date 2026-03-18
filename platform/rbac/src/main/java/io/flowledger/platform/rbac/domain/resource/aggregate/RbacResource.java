@@ -37,9 +37,6 @@ public class RbacResource {
   @Column(name = "description", length = 500, nullable = true)
   private String description;
 
-  @Column(name = "system_managed", nullable = false)
-  private boolean systemManaged;
-
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 

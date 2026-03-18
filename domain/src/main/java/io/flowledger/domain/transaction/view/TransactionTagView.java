@@ -1,6 +1,7 @@
 package io.flowledger.domain.transaction.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.transaction.entity.TransactionTag;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
@@ -19,6 +20,7 @@ public interface TransactionTagView {
    *
    * @return the tag id
    */
+  @IdMapping
   UUID getId();
 
   /**

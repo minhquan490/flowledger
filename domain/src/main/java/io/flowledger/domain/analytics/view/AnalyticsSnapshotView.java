@@ -1,6 +1,7 @@
 package io.flowledger.domain.analytics.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.analytics.aggregate.AnalyticsSnapshot;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
@@ -20,6 +21,7 @@ public interface AnalyticsSnapshotView {
    *
    * @return the snapshot id
    */
+  @IdMapping
   UUID getId();
 
   /**

@@ -1,6 +1,7 @@
 package io.flowledger.platform.rbac.domain.resource.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
@@ -19,6 +20,7 @@ public interface RbacResourceView {
    *
    * @return the resource id
    */
+  @IdMapping
   UUID getId();
 
   /**
@@ -34,13 +36,6 @@ public interface RbacResourceView {
    * @return the resource description
    */
   String getDescription();
-
-  /**
-   * Returns whether the resource is system-managed.
-   *
-   * @return true when system-managed
-   */
-  boolean isSystemManaged();
 
   /**
    * Returns the creation timestamp.

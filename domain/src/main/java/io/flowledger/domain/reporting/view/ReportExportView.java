@@ -1,6 +1,7 @@
 package io.flowledger.domain.reporting.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.reporting.entity.ReportExport;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
@@ -19,6 +20,7 @@ public interface ReportExportView {
    *
    * @return the report export id
    */
+  @IdMapping
   UUID getId();
 
   /**

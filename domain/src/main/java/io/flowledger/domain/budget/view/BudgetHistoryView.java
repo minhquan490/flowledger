@@ -1,6 +1,7 @@
 package io.flowledger.domain.budget.view;
 
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.budget.entity.BudgetHistory;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
@@ -21,6 +22,7 @@ public interface BudgetHistoryView {
    *
    * @return the budget history id
    */
+  @IdMapping
   UUID getId();
 
   /**

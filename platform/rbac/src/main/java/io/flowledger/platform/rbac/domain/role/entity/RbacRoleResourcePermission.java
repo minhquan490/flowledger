@@ -47,9 +47,6 @@ public class RbacRoleResourcePermission {
   @Column(name = "allowed", nullable = false)
   private boolean allowed;
 
-  @Column(name = "system_managed", nullable = false)
-  private boolean systemManaged;
-
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
