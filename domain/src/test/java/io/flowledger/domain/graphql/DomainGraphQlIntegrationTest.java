@@ -30,18 +30,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.test.tester.ExecutionGraphQlServiceTester;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
  * Integration test ensuring GraphQL queries can resolve domain views.
  */
-@SpringBootTest(classes = DomainGraphQlIntegrationTest.TestApplication.class, properties = "spring.autoconfigure.exclude=io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration")
+@SpringBootTest(
+    classes = DomainGraphQlIntegrationTest.TestApplication.class,
+    properties = "spring.autoconfigure.exclude="
+        + "io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration,"
+        + "io.flowledger.platform.rbac.infrastructure.autoconfigure.RbacAutoConfiguration"
+)
 class DomainGraphQlIntegrationTest {
 
   @Autowired
@@ -70,7 +77,7 @@ class DomainGraphQlIntegrationTest {
     pagedQuery = org.mockito.Mockito.mock(PaginatedCriteriaBuilder.class);
     RestrictionBuilder restrictionBuilder = org.mockito.Mockito.mock(RestrictionBuilder.class);
 
-    when(criteriaBuilderFactory.create(entityManager, Account.class)).thenReturn(criteriaBuilder);
+    when(criteriaBuilderFactory.create(nullable(EntityManager.class), any(Class.class))).thenReturn(criteriaBuilder);
     when(entityViewManager.applySetting(any(EntityViewSetting.class), any(CriteriaBuilder.class)))
         .thenReturn(viewQuery);
     when(viewQuery.page(0, 1)).thenReturn(pagedQuery);
@@ -221,6 +228,11 @@ class DomainGraphQlIntegrationTest {
         CriteriaBuilderFactory criteriaBuilderFactory,
         EntityManager entityManager) {
       return new BlazeQueryBuilder(criteriaBuilderFactory, List.of());
+    }
+
+    @Bean
+    ObjectMapper objectMapper() {
+      return new ObjectMapper();
     }
   }
 

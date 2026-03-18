@@ -54,4 +54,21 @@ class RbacGraphQlAccessPolicyTest {
 
     assertEquals(403, ex.getStatusCode());
   }
+
+  /**
+   * Verifies access is denied when no readable fields are granted for the resource.
+   */
+  @Test
+  void authorizeReadRejectsWhenAllowedFieldsMissing() {
+    RbacPermissionService permissionService = Mockito.mock(RbacPermissionService.class);
+    RbacFieldPermissionService fieldPermissionService = Mockito.mock(RbacFieldPermissionService.class);
+    RbacGraphQlAccessPolicy policy = new RbacGraphQlAccessPolicy(permissionService, fieldPermissionService);
+
+    GraphQlReadRequest request = new GraphQlReadRequest("account", Map.of("id", "acc_1"), List.of("name"));
+    when(fieldPermissionService.readableFields("account")).thenReturn(List.of());
+
+    GraphQlApiException ex = assertThrows(GraphQlApiException.class, () -> policy.authorizeRead(request));
+
+    assertEquals(403, ex.getStatusCode());
+  }
 }

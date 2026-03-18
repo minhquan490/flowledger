@@ -6,6 +6,7 @@ import io.flowledger.platform.graphql.domain.GraphQlMutationRequest;
 import io.flowledger.platform.rbac.application.service.RbacFieldPermissionService;
 import io.flowledger.platform.rbac.application.service.RbacPermissionService;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
+import io.flowledger.platform.rbac.domain.role.valueobject.RbacFieldAction;
 import java.util.List;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,8 @@ public class RbacGraphQLMutationPolicy implements GraphQLMutationPolicy {
     permissionService.assertHasPermission(resource, action);
     if (action == RbacAction.CREATE || action == RbacAction.UPDATE) {
       List<String> fields = request.data() == null ? List.of() : request.data().keySet().stream().toList();
-      fieldPermissionService.validateWritableFields(resource, fields);
+      RbacFieldAction fieldAction = action == RbacAction.CREATE ? RbacFieldAction.CREATE : RbacFieldAction.UPDATE;
+      fieldPermissionService.validateFieldsForAction(resource, fields, fieldAction);
     }
   }
 

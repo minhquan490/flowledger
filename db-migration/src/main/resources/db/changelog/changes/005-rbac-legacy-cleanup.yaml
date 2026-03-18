@@ -1,0 +1,88 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-rbac-legacy-cleanup
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          sqlCheck:
+            expectedResult: "1"
+            sql: "select 1"
+      changes:
+        - sql:
+            splitStatements: true
+            stripComments: true
+            sql: |
+              insert into rbac_roles (id, code, name, is_default, system_managed, created_at, updated_at)
+              select
+                legacy.id,
+                lower(legacy.role_key),
+                coalesce(nullif(legacy.description, ''), legacy.role_key),
+                false,
+                false,
+                coalesce(legacy.created_at, now()),
+                coalesce(legacy.updated_at, now())
+              from roles legacy
+              where not exists (
+                select 1
+                from rbac_roles rr
+                where rr.id = legacy.id or rr.code = lower(legacy.role_key)
+              );
+
+              insert into rbac_user_roles (id, user_id, role_id, created_at, updated_at)
+              select
+                legacy.id,
+                legacy.user_id,
+                legacy.role_id,
+                coalesce(legacy.created_at, now()),
+                coalesce(legacy.updated_at, now())
+              from user_roles legacy
+              where exists (
+                select 1
+                from rbac_roles rr
+                where rr.id = legacy.role_id
+              )
+              and not exists (
+                select 1
+                from rbac_user_roles rur
+                where rur.id = legacy.id
+                   or (rur.user_id = legacy.user_id and rur.role_id = legacy.role_id)
+              );
+
+              insert into rbac_resources (id, name, description, system_managed, created_at, updated_at)
+              select
+                uuidv7(),
+                lower(split_part(legacy.permission_key, '_', 1)),
+                coalesce(legacy.description, legacy.permission_key),
+                false,
+                coalesce(legacy.created_at, now()),
+                coalesce(legacy.updated_at, now())
+              from permissions legacy
+              where legacy.permission_key is not null
+                and legacy.permission_key <> ''
+                and not exists (
+                  select 1
+                  from rbac_resources rr
+                  where rr.name = lower(split_part(legacy.permission_key, '_', 1))
+                );
+        - preConditions:
+            - onFail: MARK_RAN
+              onError: MARK_RAN
+              tableExists:
+                tableName: user_roles
+          dropTable:
+            tableName: user_roles
+        - preConditions:
+            - onFail: MARK_RAN
+              onError: MARK_RAN
+              tableExists:
+                tableName: roles
+          dropTable:
+            tableName: roles
+        - preConditions:
+            - onFail: MARK_RAN
+              onError: MARK_RAN
+              tableExists:
+                tableName: permissions
+          dropTable:
+            tableName: permissions

@@ -1,0 +1,203 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-rbac-field-actions
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          sqlCheck:
+            expectedResult: "1"
+            sql: "select 1"
+      changes:
+        - createTable:
+            tableName: rbac_resource_fields
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: uuidv7()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: resource_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: field_name
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source_method_name
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: system_managed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: rbac_role_field_action_permissions
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: uuidv7()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: role_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: resource_field_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: action
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: allowed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: system_managed
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: rbac_resource_fields
+            columnNames: resource_id, field_name
+            constraintName: uq_rbac_resource_field
+        - addUniqueConstraint:
+            tableName: rbac_role_field_action_permissions
+            columnNames: role_id, resource_field_id, action
+            constraintName: uq_rbac_role_field_action
+        - createIndex:
+            tableName: rbac_resource_fields
+            indexName: idx_rbac_resource_field_resource
+            columns:
+              - column:
+                  name: resource_id
+        - createIndex:
+            tableName: rbac_role_field_action_permissions
+            indexName: idx_rbac_role_field_action_role
+            columns:
+              - column:
+                  name: role_id
+              - column:
+                  name: action
+        - createIndex:
+            tableName: rbac_role_field_action_permissions
+            indexName: idx_rbac_role_field_action_field
+            columns:
+              - column:
+                  name: role_id
+              - column:
+                  name: resource_field_id
+        - addForeignKeyConstraint:
+            baseTableName: rbac_resource_fields
+            baseColumnNames: resource_id
+            referencedTableName: rbac_resources
+            referencedColumnNames: id
+            constraintName: fk_rbac_resource_fields_resource
+        - addForeignKeyConstraint:
+            baseTableName: rbac_role_field_action_permissions
+            baseColumnNames: role_id
+            referencedTableName: rbac_roles
+            referencedColumnNames: id
+            constraintName: fk_rbac_role_field_action_role
+        - addForeignKeyConstraint:
+            baseTableName: rbac_role_field_action_permissions
+            baseColumnNames: resource_field_id
+            referencedTableName: rbac_resource_fields
+            referencedColumnNames: id
+            constraintName: fk_rbac_role_field_action_resource_field
+        - sql:
+            splitStatements: true
+            stripComments: true
+            sql: |
+              insert into rbac_resource_fields (id, resource_id, field_name, source_method_name, system_managed, created_at, updated_at)
+              select
+                uuidv7(),
+                legacy.resource_id,
+                legacy.field_name,
+                concat('legacy:', legacy.field_name),
+                true,
+                now(),
+                now()
+              from (
+                select distinct resource_id, field_name
+                from rbac_role_field_permissions
+              ) legacy
+              on conflict (resource_id, field_name) do nothing;
+
+              insert into rbac_role_field_action_permissions (
+                id, role_id, resource_field_id, action, allowed, system_managed, created_at, updated_at
+              )
+              select
+                uuidv7(),
+                f.role_id,
+                rf.id,
+                'VIEW',
+                true,
+                f.system_managed,
+                now(),
+                now()
+              from rbac_role_field_permissions f
+              join rbac_resource_fields rf
+                on rf.resource_id = f.resource_id and rf.field_name = f.field_name
+              where f.can_read = true
+              on conflict (role_id, resource_field_id, action) do nothing;
+
+              insert into rbac_role_field_action_permissions (
+                id, role_id, resource_field_id, action, allowed, system_managed, created_at, updated_at
+              )
+              select
+                uuidv7(),
+                f.role_id,
+                rf.id,
+                action_map.action,
+                true,
+                f.system_managed,
+                now(),
+                now()
+              from rbac_role_field_permissions f
+              join rbac_resource_fields rf
+                on rf.resource_id = f.resource_id and rf.field_name = f.field_name
+              join (
+                select 'CREATE'::varchar(20) as action
+                union all
+                select 'UPDATE'::varchar(20) as action
+              ) action_map on true
+              where f.can_write = true
+              on conflict (role_id, resource_field_id, action) do nothing;

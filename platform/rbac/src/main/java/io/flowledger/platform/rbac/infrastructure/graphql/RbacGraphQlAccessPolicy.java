@@ -69,7 +69,7 @@ public class RbacGraphQlAccessPolicy implements GraphQlAccessPolicy {
   private List<String> filterReadableFields(String resource, List<String> requested) {
     List<String> allowed = fieldPermissionService.readableFields(resource);
     if (allowed.isEmpty()) {
-      return requested;
+      throw new GraphQlApiException("No readable fields available for " + resource + ".", FORBIDDEN_STATUS);
     }
     if (requested == null || requested.isEmpty()) {
       return allowed;

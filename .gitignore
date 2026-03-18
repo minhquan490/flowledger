@@ -20,3 +20,4 @@
 /platform/rbac/build/
 /application/build/
 /**/node_modules/
+/**/.env

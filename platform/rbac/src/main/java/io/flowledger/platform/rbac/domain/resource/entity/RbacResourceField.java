@@ -1,16 +1,13 @@
-package io.flowledger.platform.rbac.domain.role.entity;
+package io.flowledger.platform.rbac.domain.resource.entity;
 
-import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -19,33 +16,29 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Represents resource-level permissions assigned to a role.
+ * Represents a synchronized RBAC field belonging to a resource.
  */
 @Entity
-@Table(name = "rbac_role_resource_permissions")
+@Table(name = "rbac_resource_fields")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RbacRoleResourcePermission {
+public class RbacResourceField {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "id", nullable = false)
   private UUID id;
 
-  @Column(name = "role_id", nullable = false)
-  private UUID roleId;
-
   @Column(name = "resource_id", nullable = false)
   private UUID resourceId;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "action", nullable = false, length = 20)
-  private RbacAction action;
+  @Column(name = "field_name", nullable = false, length = 200)
+  private String fieldName;
 
-  @Column(name = "allowed", nullable = false)
-  private boolean allowed;
+  @Column(name = "source_method_name", nullable = false, length = 200)
+  private String sourceMethodName;
 
   @Column(name = "system_managed", nullable = false)
   private boolean systemManaged;

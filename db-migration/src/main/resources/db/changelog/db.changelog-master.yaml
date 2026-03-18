@@ -5,3 +5,7 @@ databaseChangeLog:
       file: db/changelog/changes/002-seed.yaml
   - include:
       file: db/changelog/changes/003-rbac.yaml
+  - include:
+      file: db/changelog/changes/004-rbac-field-actions.yaml
+  - include:
+      file: db/changelog/changes/005-rbac-legacy-cleanup.yaml

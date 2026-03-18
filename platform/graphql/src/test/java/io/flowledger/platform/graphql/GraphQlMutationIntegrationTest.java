@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.test.tester.ExecutionGraphQlServiceTester;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.blazebit.persistence.CriteriaBuilderFactory;
 import com.blazebit.persistence.view.CreatableEntityView;
@@ -166,6 +167,11 @@ class GraphQlMutationIntegrationTest {
     @Bean
     EntityManager entityManager() {
       EntityManager entityManager = org.mockito.Mockito.mock(EntityManager.class);
+      when(entityManager.find(AccountEntity.class, "acc_42")).thenAnswer(_ -> {
+        AccountEntity entity = new AccountEntity();
+        entity.setId("acc_42");
+        return entity;
+      });
       when(entityManager.find(AccountEntity.class, "acc_delete")).thenAnswer(_ -> {
         AccountEntity entity = new AccountEntity();
         entity.setId("acc_delete");
@@ -218,7 +224,9 @@ class GraphQlMutationIntegrationTest {
     BlazeQueryBuilder blazeQueryBuilder(
         CriteriaBuilderFactory criteriaBuilderFactory,
         EntityManager entityManager) {
-      return new BlazeQueryBuilder(criteriaBuilderFactory, java.util.List.of());
+      BlazeQueryBuilder queryBuilder = new BlazeQueryBuilder(criteriaBuilderFactory, java.util.List.of());
+      ReflectionTestUtils.setField(queryBuilder, "entityManager", entityManager);
+      return queryBuilder;
     }
 
   }

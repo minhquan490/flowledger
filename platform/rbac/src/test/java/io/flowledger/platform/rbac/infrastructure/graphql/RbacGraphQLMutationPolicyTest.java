@@ -5,6 +5,7 @@ import io.flowledger.platform.graphql.domain.GraphQlMutationRequest;
 import io.flowledger.platform.rbac.application.service.RbacFieldPermissionService;
 import io.flowledger.platform.rbac.application.service.RbacPermissionService;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
+import io.flowledger.platform.rbac.domain.role.valueobject.RbacFieldAction;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class RbacGraphQLMutationPolicyTest {
     policy.validateWriteAccess("account", request);
 
     verify(permissionService).assertHasPermission("account", RbacAction.CREATE);
-    verify(fieldPermissionService).validateWritableFields("account", List.of("name"));
+    verify(fieldPermissionService).validateFieldsForAction("account", List.of("name"), RbacFieldAction.CREATE);
   }
 
   /**
