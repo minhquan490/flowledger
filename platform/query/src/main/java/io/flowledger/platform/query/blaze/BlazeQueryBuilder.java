@@ -1,18 +1,25 @@
 package io.flowledger.platform.query.blaze;
 
+import com.blazebit.persistence.BaseWhereBuilder;
 import com.blazebit.persistence.CriteriaBuilder;
 import com.blazebit.persistence.CriteriaBuilderFactory;
 import com.blazebit.persistence.FullQueryBuilder;
 import com.blazebit.persistence.PaginatedCriteriaBuilder;
+import com.blazebit.persistence.WhereAndBuilder;
+import com.blazebit.persistence.WhereOrBuilder;
 import com.blazebit.persistence.view.EntityViewSetting;
 import io.flowledger.platform.query.QuerySystemException;
+import io.flowledger.platform.query.blaze.filter.BlazeFilterOperators;
+import io.flowledger.platform.query.blaze.filter.BlazeFilterOperatorRegistry;
+import io.flowledger.platform.query.blaze.filter.BlazeFilterSyntax;
 import jakarta.persistence.EntityManager;
-import java.util.List;
+import jakarta.persistence.PersistenceContext;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import jakarta.persistence.PersistenceContext;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +37,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor(access = AccessLevel.PUBLIC)
 @ConditionalOnMissingBean(BlazeQueryBuilder.class)
 public class BlazeQueryBuilder {
-
   private final CriteriaBuilderFactory criteriaBuilderFactory;
   private final List<BlazeQueryBuilderExtension> extensions;
+  private final BlazeFilterOperatorRegistry filterOperatorRegistry = BlazeFilterOperatorRegistry.defaultRegistry();
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -68,7 +75,22 @@ public class BlazeQueryBuilder {
   }
 
   /**
-   * Applies equality filters to the criteria builder.
+   * Applies structured filters to the criteria builder.
+   *
+   * <p>Example JSON:
+   * <pre>{@code
+   * {
+   *   "status": { "op": "eq", "value": "ACTIVE" },
+   *   "amount": { "op": "between", "value": { "from": 100, "to": 500 } },
+   *   "orgId": { "op": "in", "value": ["org-1", "org-2"] },
+   *   "name": { "op": "ilike", "value": "%ledger%" },
+   *   "deletedAt": { "op": "isNull" },
+   *   "or": [
+   *     { "priority": { "op": "gt", "value": 3 } },
+   *     { "tier": { "op": "eq", "value": "GOLD" } }
+   *   ]
+   * }
+   * }</pre>
    *
    * @param criteriaBuilder the criteria builder
    * @param filters         filter map keyed by field name
@@ -83,12 +105,156 @@ public class BlazeQueryBuilder {
       return;
     }
     for (Map.Entry<String, Object> entry : resolvedFilters.entrySet()) {
+      applyFilterEntry(criteriaBuilder, entry);
+    }
+  }
+
+  /**
+   * Applies a single filter entry to the criteria builder.
+   *
+   * @param criteriaBuilder the criteria builder
+   * @param entry the filter entry
+   * @param <T> entity type for the query
+   */
+  private <T> void applyFilterEntry(CriteriaBuilder<T> criteriaBuilder, Map.Entry<String, Object> entry) {
+    String field = entry.getKey();
+    if (field == null || field.isBlank()) {
+      return;
+    }
+    if (isLogicalOrKey(field)) {
+      applyLogicalOr(criteriaBuilder, entry.getValue());
+      return;
+    }
+    applyFieldPredicate(criteriaBuilder, field, entry.getValue());
+  }
+
+  /**
+   * Applies a single field predicate to the criteria builder.
+   *
+   * @param criteriaBuilder the criteria builder
+   * @param field the field name
+   * @param rawValue the raw predicate value
+   * @param <T> entity type for the query
+   */
+  private <T> void applyFieldPredicate(CriteriaBuilder<T> criteriaBuilder, String field, Object rawValue) {
+    applyFieldPredicate((BaseWhereBuilder<?>) criteriaBuilder, field, rawValue);
+  }
+
+  /**
+   * Applies a single field predicate to a generic where builder.
+   *
+   * @param whereBuilder the target where builder
+   * @param field the field name
+   * @param rawValue the raw predicate value
+   */
+  private void applyFieldPredicate(BaseWhereBuilder<?> whereBuilder, String field, Object rawValue) {
+    if (!(rawValue instanceof Map<?, ?> valueMap) || !valueMap.containsKey(BlazeFilterSyntax.OPERATOR_KEY)) {
+      filterOperatorRegistry.apply(BlazeFilterOperators.EQ, whereBuilder, field, rawValue);
+      return;
+    }
+    String operator = resolveOperator(valueMap);
+    Object operatorValue = valueMap.get(BlazeFilterSyntax.OPERATOR_VALUE_KEY);
+    filterOperatorRegistry.apply(operator, whereBuilder, field, operatorValue);
+  }
+
+  /**
+   * Applies OR predicates from a value collection.
+   *
+   * @param criteriaBuilder the criteria builder
+   * @param logicalOrValue the OR value that contains disjunctive clauses
+   * @param <T> entity type for the query
+   */
+  private <T> void applyLogicalOr(CriteriaBuilder<T> criteriaBuilder, Object logicalOrValue) {
+    Collection<Map<String, Object>> clauses = resolveOrClauses(logicalOrValue);
+    if (clauses.isEmpty()) {
+      return;
+    }
+    WhereOrBuilder<CriteriaBuilder<T>> whereOrBuilder = criteriaBuilder.whereOr();
+    for (Map<String, Object> clause : clauses) {
+      WhereAndBuilder<WhereOrBuilder<CriteriaBuilder<T>>> whereAndBuilder = whereOrBuilder.whereAnd();
+      applyAndClause(whereAndBuilder, clause);
+      whereOrBuilder = whereAndBuilder.endAnd();
+    }
+    whereOrBuilder.endOr();
+  }
+
+  /**
+   * Applies AND predicates inside a single OR clause.
+   *
+   * @param whereAndBuilder the and builder
+   * @param clause the clause map
+   * @param <T> parent builder type
+   */
+  private <T> void applyAndClause(WhereAndBuilder<T> whereAndBuilder, Map<String, Object> clause) {
+    if (clause == null || clause.isEmpty()) {
+      return;
+    }
+    for (Map.Entry<String, Object> entry : clause.entrySet()) {
       String field = entry.getKey();
-      if (field == null || field.isBlank()) {
+      if (field == null || field.isBlank() || isLogicalOrKey(field)) {
         continue;
       }
-      criteriaBuilder.where(field).eq(entry.getValue());
+      applyFieldPredicate(whereAndBuilder, field, entry.getValue());
     }
+  }
+
+  /**
+   * Applies a single field predicate to a where-and builder.
+   *
+   * @param whereAndBuilder the and builder
+   * @param field the field name
+   * @param rawValue the raw predicate value
+   * @param <T> parent builder type
+   */
+  private <T> void applyFieldPredicate(WhereAndBuilder<T> whereAndBuilder, String field, Object rawValue) {
+    applyFieldPredicate((BaseWhereBuilder<?>) whereAndBuilder, field, rawValue);
+  }
+
+  /**
+   * Resolves the operator from the filter operator map.
+   *
+   * @param valueMap map containing operator metadata
+   * @return normalized operator string
+   */
+  private String resolveOperator(Map<?, ?> valueMap) {
+    Object operatorValue = valueMap.get(BlazeFilterSyntax.OPERATOR_KEY);
+    if (!(operatorValue instanceof String operator) || operator.isBlank()) {
+      throw new QuerySystemException("Filter operator must be a non-empty string.");
+    }
+    return BlazeFilterOperators.normalize(operator);
+  }
+
+  /**
+   * Resolves OR clauses from a filter value.
+   *
+   * @param logicalOrValue the OR value
+   * @return disjunctive clauses
+   */
+  private Collection<Map<String, Object>> resolveOrClauses(Object logicalOrValue) {
+    if (!(logicalOrValue instanceof Collection<?> values)) {
+      throw new QuerySystemException("OR filter must be a collection of filter objects.");
+    }
+    List<Map<String, Object>> clauses = new ArrayList<>();
+    for (Object value : values) {
+      if (!(value instanceof Map<?, ?> rawClause)) {
+        throw new QuerySystemException("OR filter contains a non-object clause.");
+      }
+      @SuppressWarnings("unchecked")
+      Map<String, Object> clause = (Map<String, Object>) rawClause;
+      clauses.add(clause);
+    }
+    return clauses;
+  }
+
+  /**
+   * Indicates whether a key is used for OR logical grouping.
+   *
+   * @param key filter key
+   * @return {@code true} when key is OR logical marker
+   */
+  private boolean isLogicalOrKey(String key) {
+    return BlazeFilterSyntax.LOGICAL_OR.equalsIgnoreCase(key)
+        || BlazeFilterSyntax.LOGICAL_OR_ALIAS.equalsIgnoreCase(key);
   }
 
   /**
