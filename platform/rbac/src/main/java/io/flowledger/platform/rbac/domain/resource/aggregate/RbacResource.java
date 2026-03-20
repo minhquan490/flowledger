@@ -1,14 +1,19 @@
 package io.flowledger.platform.rbac.domain.resource.aggregate;
 
+import io.flowledger.platform.rbac.domain.resource.entity.RbacResourceField;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.GenerationType;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,6 +41,9 @@ public class RbacResource {
 
   @Column(name = "description", length = 500, nullable = true)
   private String description;
+
+  @OneToMany(mappedBy = "resource", fetch = FetchType.LAZY)
+  private List<RbacResourceField> fields = new ArrayList<>();
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;

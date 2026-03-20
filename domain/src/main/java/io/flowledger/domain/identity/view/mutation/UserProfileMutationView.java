@@ -18,7 +18,7 @@ import java.util.UUID;
 @CreatableEntityView
 @UpdatableEntityView
 @GraphQlModel(
-    value = "userProfileWrite",
+    value = "userProfileMutation",
     mutationPolicy = RbacGraphQLMutationPolicy.class,
     mutationPayloadValidator = UserProfileMutationViewPayloadValidator.class
 )

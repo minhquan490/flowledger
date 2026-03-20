@@ -17,7 +17,7 @@ import java.time.Instant;
 @CreatableEntityView
 @UpdatableEntityView
 @GraphQlModel(
-    value = "userWrite",
+    value = "userMutation",
     mutationPolicy = RbacGraphQLMutationPolicy.class,
     mutationPayloadValidator = UserMutationViewPayloadValidator.class
 )

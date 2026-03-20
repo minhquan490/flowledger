@@ -6,6 +6,7 @@ import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -36,6 +37,13 @@ public interface RbacResourceView {
    * @return the resource description
    */
   String getDescription();
+
+  /**
+   * Returns the synchronized fields belonging to this resource.
+   *
+   * @return the resource fields
+   */
+  List<RbacResourceFieldView> getFields();
 
   /**
    * Returns the creation timestamp.

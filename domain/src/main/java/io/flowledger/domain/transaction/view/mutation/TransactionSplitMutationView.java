@@ -19,7 +19,7 @@ import java.util.UUID;
 @CreatableEntityView
 @UpdatableEntityView
 @GraphQlModel(
-    value = "transactionSplitWrite",
+    value = "transactionSplitMutation",
     mutationPolicy = RbacGraphQLMutationPolicy.class,
     mutationPayloadValidator = TransactionSplitMutationViewPayloadValidator.class
 )

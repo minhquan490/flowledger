@@ -52,7 +52,7 @@ class GraphQlMutationIntegrationTest {
     String document = """
         mutation {
           mutate(request: {
-            model: "account",
+            model: "accountMutation",
             action: "update",
             key: { id: "acc_42" },
             data: { name: "Updated" }
@@ -84,7 +84,7 @@ class GraphQlMutationIntegrationTest {
     String document = """
         mutation {
           mutate(request: {
-            model: "account",
+            model: "accountMutation",
             action: "create",
             data: { name: "New Account" }
           }) {
@@ -115,7 +115,7 @@ class GraphQlMutationIntegrationTest {
     String document = """
         mutation {
           mutate(request: {
-            model: "account",
+            model: "accountMutation",
             action: "delete",
             key: { id: "acc_delete" }
           }) {
@@ -249,7 +249,7 @@ class GraphQlMutationIntegrationTest {
   @EntityView(AccountEntity.class)
   @CreatableEntityView
   @UpdatableEntityView
-  @GraphQlModel("account")
+  @GraphQlModel("accountMutation")
   private interface AccountMutationView {
     /**
      * Returns the account id.

@@ -1,10 +1,14 @@
 package io.flowledger.platform.rbac.domain.resource.entity;
 
+import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -31,8 +35,9 @@ public class RbacResourceField {
   @Column(name = "id", nullable = false)
   private UUID id;
 
-  @Column(name = "resource_id", nullable = false)
-  private UUID resourceId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "resource_id", nullable = false, insertable = false, updatable = false)
+  private RbacResource resource;
 
   @Column(name = "field_name", nullable = false, length = 200)
   private String fieldName;

@@ -1,10 +1,9 @@
-package io.flowledger.platform.rbac.domain.role.view;
+package io.flowledger.platform.rbac.domain.resource.view;
 
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.IdMapping;
-import io.flowledger.platform.graphql.domain.GraphQlModel;
+import com.blazebit.persistence.view.Mapping;
 import io.flowledger.platform.rbac.domain.resource.entity.RbacResourceField;
-import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 
 import java.util.UUID;
 
@@ -12,7 +11,6 @@ import java.util.UUID;
  * GraphQL view for RBAC resource fields.
  */
 @EntityView(RbacResourceField.class)
-@GraphQlModel(value = "rbacResourceField", accessPolicy = RbacGraphQlAccessPolicy.class)
 public interface RbacResourceFieldView {
 
   /**
@@ -28,6 +26,7 @@ public interface RbacResourceFieldView {
    *
    * @return the resource id
    */
+  @Mapping("resource.id")
   UUID getResourceId();
 
   /**

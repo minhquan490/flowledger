@@ -20,7 +20,7 @@ import java.util.UUID;
 @CreatableEntityView
 @UpdatableEntityView
 @GraphQlModel(
-    value = "budgetPeriodWrite",
+    value = "budgetPeriodMutation",
     mutationPolicy = RbacGraphQLMutationPolicy.class,
     mutationPayloadValidator = BudgetPeriodMutationViewPayloadValidator.class
 )

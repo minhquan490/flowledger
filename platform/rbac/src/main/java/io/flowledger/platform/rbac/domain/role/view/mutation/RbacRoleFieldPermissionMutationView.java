@@ -18,7 +18,7 @@ import java.util.UUID;
 @CreatableEntityView
 @UpdatableEntityView
 @GraphQlModel(
-    value = "rbacRoleFieldPermissionWrite",
+    value = "rbacRoleFieldPermissionMutation",
     mutationPolicy = RbacGraphQLMutationPolicy.class,
     mutationPayloadValidator = RbacRoleFieldPermissionMutationViewPayloadValidator.class
 )

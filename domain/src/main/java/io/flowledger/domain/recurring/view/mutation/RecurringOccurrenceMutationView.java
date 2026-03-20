@@ -18,7 +18,7 @@ import java.util.UUID;
 @CreatableEntityView
 @UpdatableEntityView
 @GraphQlModel(
-    value = "recurringOccurrenceWrite",
+    value = "recurringOccurrenceMutation",
     mutationPolicy = RbacGraphQLMutationPolicy.class,
     mutationPayloadValidator = RecurringOccurrenceMutationViewPayloadValidator.class
 )

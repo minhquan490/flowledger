@@ -8,7 +8,6 @@ import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
 import io.flowledger.platform.rbac.domain.resource.validator.RbacResourceMutationViewPayloadValidator;
 import io.flowledger.platform.rbac.domain.resource.view.RbacResourceView;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
-import java.time.Instant;
 
 /**
  * Mutation-capable view for RBAC resources.
@@ -17,7 +16,7 @@ import java.time.Instant;
 @CreatableEntityView
 @UpdatableEntityView
 @GraphQlModel(
-    value = "rbacResourceWrite",
+    value = "rbacResourceMutation",
     mutationPolicy = RbacGraphQLMutationPolicy.class,
     mutationPayloadValidator = RbacResourceMutationViewPayloadValidator.class
 )
@@ -29,18 +28,4 @@ public interface RbacResourceMutationView extends RbacResourceView {
    * @param description the resource description
    */
   void setDescription(String description);
-
-  /**
-   * Sets the creation timestamp.
-   *
-   * @param createdAt the creation timestamp
-   */
-  void setCreatedAt(Instant createdAt);
-
-  /**
-   * Sets the update timestamp.
-   *
-   * @param updatedAt the update timestamp
-   */
-  void setUpdatedAt(Instant updatedAt);
 }
