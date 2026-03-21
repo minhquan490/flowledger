@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-rbac-drop-legacy-field-permissions
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          tableExists:
+            tableName: rbac_role_field_permissions
+      changes:
+        - dropTable:
+            tableName: rbac_role_field_permissions

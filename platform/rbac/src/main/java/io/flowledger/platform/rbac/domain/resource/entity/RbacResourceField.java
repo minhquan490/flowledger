@@ -36,7 +36,7 @@ public class RbacResourceField {
   private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "resource_id", nullable = false, insertable = false, updatable = false)
+  @JoinColumn(name = "resource_id", nullable = false)
   private RbacResource resource;
 
   @Column(name = "field_name", nullable = false, length = 200)

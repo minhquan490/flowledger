@@ -1,25 +1,25 @@
-package io.flowledger.platform.rbac.domain.role.view;
+package io.flowledger.platform.rbac.domain.permission.view;
 
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleRowCondition;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
-import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
-import io.flowledger.platform.rbac.domain.role.entity.RbacRoleResourcePermission;
+
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * GraphQL view for RBAC role resource permissions.
+ * GraphQL view for RBAC role row conditions.
  */
-@EntityView(RbacRoleResourcePermission.class)
-@GraphQlModel(value = "rbacRoleResourcePermission", accessPolicy = RbacGraphQlAccessPolicy.class)
-public interface RbacRoleResourcePermissionView {
+@EntityView(RbacRoleRowCondition.class)
+@GraphQlModel(value = "rbacRoleRowCondition", accessPolicy = RbacGraphQlAccessPolicy.class)
+public interface RbacRoleRowConditionView {
 
   /**
-   * Returns the permission identifier.
+   * Returns the condition identifier.
    *
-   * @return the permission id
+   * @return the condition id
    */
   @IdMapping
   UUID getId();
@@ -39,18 +39,11 @@ public interface RbacRoleResourcePermissionView {
   UUID getResourceId();
 
   /**
-   * Returns the action.
+   * Returns the condition JSON.
    *
-   * @return the action
+   * @return the condition JSON
    */
-  RbacAction getAction();
-
-  /**
-   * Returns whether the action is allowed.
-   *
-   * @return true when allowed
-   */
-  boolean isAllowed();
+  String getConditionJson();
 
   /**
    * Returns the creation timestamp.

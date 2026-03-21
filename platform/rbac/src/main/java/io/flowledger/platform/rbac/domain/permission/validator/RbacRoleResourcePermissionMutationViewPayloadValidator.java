@@ -1,7 +1,7 @@
-package io.flowledger.platform.rbac.domain.role.validator;
+package io.flowledger.platform.rbac.domain.permission.validator;
 
-import io.flowledger.platform.rbac.domain.role.entity.RbacRoleResourcePermission;
 import io.flowledger.platform.graphql.application.JpaSchemaGraphQlMutationPayloadValidator;
+import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleResourcePermission;
 import org.springframework.stereotype.Component;
 
 /**

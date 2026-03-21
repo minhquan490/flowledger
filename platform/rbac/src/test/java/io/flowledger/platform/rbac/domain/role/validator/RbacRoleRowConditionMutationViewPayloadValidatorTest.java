@@ -2,8 +2,10 @@ package io.flowledger.platform.rbac.domain.role.validator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.flowledger.platform.graphql.application.GraphQlValidationException;
-import java.util.Map;
+import io.flowledger.platform.rbac.domain.permission.validator.RbacRoleRowConditionMutationViewPayloadValidator;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;

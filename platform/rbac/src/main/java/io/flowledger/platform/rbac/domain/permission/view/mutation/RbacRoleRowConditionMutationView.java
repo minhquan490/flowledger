@@ -1,29 +1,29 @@
-package io.flowledger.platform.rbac.domain.role.view.mutation;
+package io.flowledger.platform.rbac.domain.permission.view.mutation;
 
 import com.blazebit.persistence.view.CreatableEntityView;
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
-import io.flowledger.platform.rbac.domain.role.entity.RbacRoleResourcePermission;
-import io.flowledger.platform.rbac.domain.role.validator.RbacRoleResourcePermissionMutationViewPayloadValidator;
-import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
-import io.flowledger.platform.rbac.domain.role.view.RbacRoleResourcePermissionView;
+import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleRowCondition;
+import io.flowledger.platform.rbac.domain.permission.validator.RbacRoleRowConditionMutationViewPayloadValidator;
+import io.flowledger.platform.rbac.domain.permission.view.RbacRoleRowConditionView;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
+
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Mutation-capable view for RBAC role resource permissions.
+ * Mutation-capable view for RBAC role row conditions.
  */
-@EntityView(RbacRoleResourcePermission.class)
+@EntityView(RbacRoleRowCondition.class)
 @CreatableEntityView
 @UpdatableEntityView
 @GraphQlModel(
-    value = "rbacRoleResourcePermissionMutation",
+    value = "rbacRoleRowConditionMutation",
     mutationPolicy = RbacGraphQLMutationPolicy.class,
-    mutationPayloadValidator = RbacRoleResourcePermissionMutationViewPayloadValidator.class
+    mutationPayloadValidator = RbacRoleRowConditionMutationViewPayloadValidator.class
 )
-public interface RbacRoleResourcePermissionMutationView extends RbacRoleResourcePermissionView {
+public interface RbacRoleRowConditionMutationView extends RbacRoleRowConditionView {
   /**
    * Sets the role identifier.
    *
@@ -39,18 +39,11 @@ public interface RbacRoleResourcePermissionMutationView extends RbacRoleResource
   void setResourceId(UUID resourceId);
 
   /**
-   * Sets the action.
+   * Sets the condition JSON.
    *
-   * @param action the action
+   * @param conditionJson the condition JSON
    */
-  void setAction(RbacAction action);
-
-  /**
-   * Sets whether the action is allowed.
-   *
-   * @param allowed true when allowed
-   */
-  void setAllowed(boolean allowed);
+  void setConditionJson(String conditionJson);
 
   /**
    * Sets the creation timestamp.

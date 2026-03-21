@@ -1,28 +1,30 @@
-package io.flowledger.platform.rbac.domain.role.view.mutation;
+package io.flowledger.platform.rbac.domain.permission.view.mutation;
 
 import com.blazebit.persistence.view.CreatableEntityView;
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
-import io.flowledger.platform.rbac.domain.role.entity.RbacRoleFieldPermission;
-import io.flowledger.platform.rbac.domain.role.validator.RbacRoleFieldPermissionMutationViewPayloadValidator;
-import io.flowledger.platform.rbac.domain.role.view.RbacRoleFieldPermissionView;
+import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleResourcePermission;
+import io.flowledger.platform.rbac.domain.permission.validator.RbacRoleResourcePermissionMutationViewPayloadValidator;
+import io.flowledger.platform.rbac.domain.permission.view.RbacRoleResourcePermissionView;
+import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
+
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Mutation-capable view for RBAC role field permissions.
+ * Mutation-capable view for RBAC role resource permissions.
  */
-@EntityView(RbacRoleFieldPermission.class)
+@EntityView(RbacRoleResourcePermission.class)
 @CreatableEntityView
 @UpdatableEntityView
 @GraphQlModel(
-    value = "rbacRoleFieldPermissionMutation",
+    value = "rbacRoleResourcePermissionMutation",
     mutationPolicy = RbacGraphQLMutationPolicy.class,
-    mutationPayloadValidator = RbacRoleFieldPermissionMutationViewPayloadValidator.class
+    mutationPayloadValidator = RbacRoleResourcePermissionMutationViewPayloadValidator.class
 )
-public interface RbacRoleFieldPermissionMutationView extends RbacRoleFieldPermissionView {
+public interface RbacRoleResourcePermissionMutationView extends RbacRoleResourcePermissionView {
   /**
    * Sets the role identifier.
    *
@@ -38,25 +40,18 @@ public interface RbacRoleFieldPermissionMutationView extends RbacRoleFieldPermis
   void setResourceId(UUID resourceId);
 
   /**
-   * Sets the field name.
+   * Sets the action.
    *
-   * @param fieldName the field name
+   * @param action the action
    */
-  void setFieldName(String fieldName);
+  void setAction(RbacAction action);
 
   /**
-   * Sets whether the field is readable.
+   * Sets whether the action is allowed.
    *
-   * @param canRead true when readable
+   * @param allowed true when allowed
    */
-  void setCanRead(boolean canRead);
-
-  /**
-   * Sets whether the field is writable.
-   *
-   * @param canWrite true when writable
-   */
-  void setCanWrite(boolean canWrite);
+  void setAllowed(boolean allowed);
 
   /**
    * Sets the creation timestamp.

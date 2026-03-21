@@ -1,19 +1,20 @@
-package io.flowledger.platform.rbac.domain.role.view;
+package io.flowledger.platform.rbac.domain.permission.view;
 
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
-import io.flowledger.platform.rbac.domain.role.entity.RbacRoleFieldPermission;
+import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
+import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleResourcePermission;
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * GraphQL view for RBAC role field permissions.
+ * GraphQL view for RBAC role resource permissions.
  */
-@EntityView(RbacRoleFieldPermission.class)
-@GraphQlModel(value = "rbacRoleFieldPermission", accessPolicy = RbacGraphQlAccessPolicy.class)
-public interface RbacRoleFieldPermissionView {
+@EntityView(RbacRoleResourcePermission.class)
+@GraphQlModel(value = "rbacRoleResourcePermission", accessPolicy = RbacGraphQlAccessPolicy.class)
+public interface RbacRoleResourcePermissionView {
 
   /**
    * Returns the permission identifier.
@@ -38,25 +39,18 @@ public interface RbacRoleFieldPermissionView {
   UUID getResourceId();
 
   /**
-   * Returns the field name.
+   * Returns the action.
    *
-   * @return the field name
+   * @return the action
    */
-  String getFieldName();
+  RbacAction getAction();
 
   /**
-   * Returns whether the field is readable.
+   * Returns whether the action is allowed.
    *
-   * @return true when readable
+   * @return true when allowed
    */
-  boolean isCanRead();
-
-  /**
-   * Returns whether the field is writable.
-   *
-   * @return true when writable
-   */
-  boolean isCanWrite();
+  boolean isAllowed();
 
   /**
    * Returns the creation timestamp.

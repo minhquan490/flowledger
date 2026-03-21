@@ -1,6 +1,6 @@
-package io.flowledger.platform.rbac.domain.role.entity;
+package io.flowledger.platform.rbac.domain.permission.entity;
 
-import io.flowledger.platform.rbac.domain.role.valueobject.RbacFieldAction;
+import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,15 +19,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Represents action-specific field-level permissions assigned to a role.
+ * Represents resource-level permissions assigned to a role.
  */
 @Entity
-@Table(name = "rbac_role_field_action_permissions")
+@Table(name = "rbac_role_resource_permissions")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RbacRoleFieldActionPermission {
+public class RbacRoleResourcePermission {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -37,12 +37,12 @@ public class RbacRoleFieldActionPermission {
   @Column(name = "role_id", nullable = false)
   private UUID roleId;
 
-  @Column(name = "resource_field_id", nullable = false)
-  private UUID resourceFieldId;
+  @Column(name = "resource_id", nullable = false)
+  private UUID resourceId;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "action", nullable = false, length = 20)
-  private RbacFieldAction action;
+  private RbacAction action;
 
   @Column(name = "allowed", nullable = false)
   private boolean allowed;

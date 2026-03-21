@@ -2,15 +2,18 @@ package io.flowledger.platform.rbac.infrastructure.sync;
 
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlModelRegistry;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlViewDefinition;
+import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleFieldActionPermission;
+import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleResourcePermission;
+import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
 import io.flowledger.platform.rbac.domain.resource.entity.RbacResourceField;
+import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacFieldAction;
-import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
-import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
-import io.flowledger.platform.rbac.domain.role.entity.RbacRoleFieldActionPermission;
-import io.flowledger.platform.rbac.domain.role.entity.RbacRoleResourcePermission;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,8 +25,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Synchronizes GraphQL models into RBAC resources and seeds defaults.
@@ -527,7 +528,8 @@ public class RbacResourceSynchronizer {
    */
   private void persistResourceField(UUID resourceId, String fieldName, String sourceMethodName, Instant now) {
     RbacResourceField resourceField = new RbacResourceField();
-    resourceField.setResourceId(resourceId);
+    RbacResource resourceReference = entityManager.getReference(RbacResource.class, resourceId);
+    resourceField.setResource(resourceReference);
     resourceField.setFieldName(fieldName);
     resourceField.setSourceMethodName(sourceMethodName);
     resourceField.setCreatedAt(now);
@@ -558,7 +560,7 @@ public class RbacResourceSynchronizer {
    * @return the resource-field key
    */
   private String resourceFieldKey(RbacResourceField resourceField) {
-    return resourceFieldKey(resourceField.getResourceId(), resourceField.getFieldName());
+    return resourceFieldKey(resourceField.getResource().getId(), resourceField.getFieldName());
   }
 
   /**
@@ -630,7 +632,9 @@ public class RbacResourceSynchronizer {
    */
   private RbacResourceField placeholderResourceField(UUID resourceId, String fieldName) {
     RbacResourceField field = new RbacResourceField();
-    field.setResourceId(resourceId);
+    RbacResource resource = new RbacResource();
+    resource.setId(resourceId);
+    field.setResource(resource);
     field.setFieldName(fieldName);
     return field;
   }

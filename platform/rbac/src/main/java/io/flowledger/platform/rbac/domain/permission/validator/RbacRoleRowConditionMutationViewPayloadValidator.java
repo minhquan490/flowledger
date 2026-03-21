@@ -1,4 +1,4 @@
-package io.flowledger.platform.rbac.domain.role.validator;
+package io.flowledger.platform.rbac.domain.permission.validator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -7,12 +7,13 @@ import io.flowledger.platform.graphql.application.GraphQlValidationException;
 import io.flowledger.platform.graphql.application.JpaSchemaGraphQlMutationPayloadValidator;
 import io.flowledger.platform.query.blaze.filter.BlazeFilterOperators;
 import io.flowledger.platform.query.blaze.filter.BlazeFilterSyntax;
-import io.flowledger.platform.rbac.domain.role.entity.RbacRoleRowCondition;
+import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleRowCondition;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Pattern;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 /**
  * Validates mutation payloads for RbacRoleRowConditionMutationView.
