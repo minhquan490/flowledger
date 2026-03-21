@@ -11,12 +11,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import java.time.Instant;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Represents resource-level permissions assigned to a role.
@@ -62,9 +63,7 @@ public class RbacRoleResourcePermission {
     if (createdAt == null) {
       createdAt = now;
     }
-    if (updatedAt == null) {
-      updatedAt = now;
-    }
+    updatedAt = now;
   }
 
   /**
