@@ -20,7 +20,7 @@
 <TooltipProvider>
   <UITooltip>
     <TooltipTrigger>
-      {#snippet child({ props })}
+      {#snippet child({ props }: { props: Record<string, unknown> })}
         <span {...props} class={className}>
           {@render children?.()}
         </span>

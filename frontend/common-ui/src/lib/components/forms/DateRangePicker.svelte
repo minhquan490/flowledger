@@ -2,7 +2,7 @@
   import CalendarIcon from "@lucide/svelte/icons/calendar";
   import type { DateValue } from "@internationalized/date";
   import type { AnyFieldApi } from "@tanstack/form-core";
-  import { Button } from "../ui/button/index.js";
+  import { Button, type ButtonProps } from "../ui/button/index.js";
   import { Calendar } from "../ui/calendar/index.js";
   import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover/index.js";
   import TanStackFormField from "./TanStackFormField.svelte";
@@ -122,13 +122,13 @@
 
         <Popover
           open={startOpen}
-          onOpenChange={(next) => {
+          onOpenChange={(next: boolean) => {
             startOpen = next;
             if (!next) fieldApi.handleBlur();
           }}
         >
           <PopoverTrigger>
-            {#snippet child({ props })}
+            {#snippet child({ props }: { props: ButtonProps })}
               <Button
                 variant="outline"
                 class={cn(
@@ -158,9 +158,9 @@
       {/snippet}
     </TanStackFormField>
   {:else}
-    <Popover open={startOpen} onOpenChange={(next) => (startOpen = next)}>
+    <Popover open={startOpen} onOpenChange={(next: boolean) => (startOpen = next)}>
       <PopoverTrigger>
-        {#snippet child({ props })}
+        {#snippet child({ props }: { props: ButtonProps })}
           <Button
             variant="outline"
             class={cn("w-full justify-start text-left font-normal", !start && "text-muted-foreground")}
@@ -198,13 +198,13 @@
 
         <Popover
           open={endOpen}
-          onOpenChange={(next) => {
+          onOpenChange={(next: boolean) => {
             endOpen = next;
             if (!next) fieldApi.handleBlur();
           }}
         >
           <PopoverTrigger>
-            {#snippet child({ props })}
+            {#snippet child({ props }: { props: ButtonProps })}
               <Button
                 variant="outline"
                 class={cn(
@@ -234,9 +234,9 @@
       {/snippet}
     </TanStackFormField>
   {:else}
-    <Popover open={endOpen} onOpenChange={(next) => (endOpen = next)}>
+    <Popover open={endOpen} onOpenChange={(next: boolean) => (endOpen = next)}>
       <PopoverTrigger>
-        {#snippet child({ props })}
+        {#snippet child({ props }: { props: ButtonProps })}
           <Button
             variant="outline"
             class={cn("w-full justify-start text-left font-normal", !end && "text-muted-foreground")}

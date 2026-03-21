@@ -8,7 +8,7 @@ import type {
 import type { SvelteFormApi } from "@tanstack/svelte-form";
 import type { DateValue } from "@internationalized/date";
 import type { ComponentProps, Snippet } from "svelte";
-import { createForm } from "@tanstack/svelte-form";
+import type { createForm } from "@tanstack/svelte-form";
 
 export interface CheckboxProps {
   formApi?: AnyTanStackFormApi;

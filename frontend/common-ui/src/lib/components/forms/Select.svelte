@@ -1,18 +1,7 @@
 <script lang="ts">
-  import {
-    Select as UISelect,
-    SelectContent,
-    SelectItem,
-    SelectTrigger
-  } from "../ui/select/index.js";
-  import TanStackFormField from "./TanStackFormField.svelte";
-  import type {
-    AnyTanStackFormApi,
-    SelectOption,
-    SelectProps,
-    TanStackFieldValidators,
-    TanStackShowError
-  } from "./types.js";
+  import { Select as UISelect, SelectContent, SelectItem, SelectTrigger } from "../ui/select/index.js";
+  import { TanStackFormField } from "./index.js";
+  import type { SelectProps } from "./types.js";
 
   let {
     formApi,
@@ -28,7 +17,7 @@
     triggerClass,
     contentClass,
     disabled = false,
-    onValueChange
+    onValueChange,
   }: SelectProps = $props();
 
   const selectType = "single" as const;
@@ -54,11 +43,11 @@
         type={selectType}
         value={currentValue}
         items={options}
-        onValueChange={(next) => {
+        onValueChange={(next: string) => {
           fieldApi.handleChange(next);
           if (onValueChange) onValueChange(next);
         }}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           if (!open) fieldApi.handleBlur();
         }}
       >
@@ -67,11 +56,7 @@
         </SelectTrigger>
         <SelectContent class={contentClass}>
           {#each options as option (option.value)}
-            <SelectItem
-              value={option.value}
-              label={option.label}
-              disabled={option.disabled}
-            >
+            <SelectItem value={option.value} label={option.label} disabled={option.disabled}>
               {option.label}
             </SelectItem>
           {/each}

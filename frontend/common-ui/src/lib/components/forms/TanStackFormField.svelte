@@ -1,4 +1,6 @@
-<script lang="ts" generics="
+<script
+  lang="ts"
+  generics="
   TData,
   TFormOnMount extends undefined | FormValidateOrFn<TData> = undefined,
   TFormOnChange extends undefined | FormValidateOrFn<TData> = undefined,
@@ -11,23 +13,13 @@
   TFormOnDynamicAsync extends undefined | FormAsyncValidateOrFn<TData> = undefined,
   TFormOnServer extends undefined | FormAsyncValidateOrFn<TData> = undefined,
   TSubmitMeta = never
-">
+"
+>
   import { Field } from "@tanstack/svelte-form";
-  import type {
-    AnyFieldApi,
-    DeepKeys,
-    FormAsyncValidateOrFn,
-    FormValidateOrFn
-  } from "@tanstack/form-core";
-
+  import type { AnyFieldApi, DeepKeys, FormAsyncValidateOrFn, FormValidateOrFn } from "@tanstack/form-core";
   import type { Snippet } from "svelte";
-
-  import FormField from "./FormField.svelte";
-  import type {
-    TanStackFieldValidators,
-    TanStackShowError,
-    TanStackTypedFormApi
-  } from "./types.js";
+  import type { TanStackFieldValidators, TanStackShowError, TanStackTypedFormApi } from "./types.js";
+  import { FormField } from "./index.js";
 
   let {
     form,
@@ -39,7 +31,7 @@
     class: className,
     validators,
     showError = "touched",
-    control
+    control,
   } = $props<{
     form: TanStackTypedFormApi<
       TData,

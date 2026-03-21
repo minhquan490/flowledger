@@ -2,13 +2,8 @@
   import { Checkbox as UICheckbox } from "../ui/checkbox/index.js";
   import { Label } from "../ui/label/index.js";
   import { cn } from "../../utils.js";
-  import TanStackFormField from "./TanStackFormField.svelte";
+  import { TanStackFormField } from "./index.js";
   import type { CheckboxProps } from "./types.js";
-  import type {
-    AnyTanStackFormApi,
-    TanStackFieldValidators,
-    TanStackShowError
-  } from "./types.js";
 
   let {
     formApi,
@@ -22,7 +17,7 @@
     label,
     description,
     class: className,
-    id
+    id,
   }: CheckboxProps = $props();
 
   const inputId = $derived(id ?? `checkbox-${Math.random().toString(36).slice(2, 9)}`);
@@ -31,20 +26,20 @@
 {#if formApi && name}
   <TanStackFormField
     form={formApi}
-    name={name}
-    label={label}
+    {name}
+    {label}
     helperText={helperText ?? description}
-    showError={showError ?? 'never'}
+    showError={showError ?? "never"}
     {validators}
     class={className}
   >
     {#snippet control(fieldApi: import("@tanstack/form-core").AnyFieldApi)}
       <UICheckbox
         checked={Boolean(fieldApi.state.value)}
-        indeterminate={indeterminate}
+        {indeterminate}
         {disabled}
         id={fieldApi.name}
-        onCheckedChange={(next) => fieldApi.handleChange(next)}
+        onCheckedChange={(next: boolean) => fieldApi.handleChange(next)}
       />
     {/snippet}
   </TanStackFormField>

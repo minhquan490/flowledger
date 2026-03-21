@@ -44,7 +44,7 @@
       "default": "./dist/components/*.js"
     },
     "./styles.css": "./dist/styles.css",
-    "./tailwind.css": "./src/lib/tailwind.css",
+    "./tailwind.css": "./dist/tailwind.css",
     "./package.json": "./package.json"
   },
   "peerDependencies": {

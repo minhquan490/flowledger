@@ -1,17 +1,12 @@
 <script lang="ts">
   import CalendarIcon from "@lucide/svelte/icons/calendar";
   import type { DateValue } from "@internationalized/date";
-  import { Button } from "../ui/button/index.js";
+  import { Button, type ButtonProps } from "../ui/button/index.js";
   import { Calendar } from "../ui/calendar/index.js";
   import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover/index.js";
   import { cn } from "../../utils.js";
   import TanStackFormField from "./TanStackFormField.svelte";
-  import type {
-    AnyTanStackFormApi,
-    DatePickerProps,
-    TanStackFieldValidators,
-    TanStackShowError
-  } from "./types.js";
+  import type { AnyTanStackFormApi, DatePickerProps, TanStackFieldValidators, TanStackShowError } from "./types.js";
   import type { AnyFieldApi } from "@tanstack/form-core";
 
   let {
@@ -24,7 +19,7 @@
     validators,
     placeholder = "Pick a date",
     class: className,
-    disabled = false
+    disabled = false,
   }: DatePickerProps & {
     form: AnyTanStackFormApi;
     name: string;
@@ -44,7 +39,7 @@
 
 <TanStackFormField
   {form}
-  name={name}
+  {name}
   {label}
   required={required ?? false}
   {helperText}
@@ -55,20 +50,17 @@
   {#snippet control(fieldApi: import("@tanstack/form-core").AnyFieldApi)}
     {@const current = readDateCurrent(fieldApi)}
     <Popover
-      open={open}
-      onOpenChange={(next) => {
+      {open}
+      onOpenChange={(next: boolean) => {
         open = next;
         if (!next) fieldApi.handleBlur();
       }}
     >
       <PopoverTrigger>
-        {#snippet child({ props })}
+        {#snippet child({ props }: { props: ButtonProps })}
           <Button
             variant="outline"
-            class={cn(
-              "w-full justify-start text-left font-normal",
-              !current && "text-muted-foreground"
-            )}
+            class={cn("w-full justify-start text-left font-normal", !current && "text-muted-foreground")}
             {disabled}
             {...props}
           >

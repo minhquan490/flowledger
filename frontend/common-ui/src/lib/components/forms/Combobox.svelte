@@ -1,31 +1,13 @@
 <script lang="ts">
   import CheckIcon from "@lucide/svelte/icons/check";
   import ChevronsUpDownIcon from "@lucide/svelte/icons/chevrons-up-down";
-
-  import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList
-  } from "../ui/command/index.js";
-
-  import { Button } from "../ui/button/index.js";
+  import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command/index.js";
+  import { Button, type ButtonProps } from "../ui/button/index.js";
   import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover/index.js";
-
   import { cn } from "../../utils.js";
-
-  import TanStackFormField from "./TanStackFormField.svelte";
-
+  import { TanStackFormField } from "./index.js";
   import type { AnyFieldApi } from "@tanstack/form-core";
-  import type {
-    AnyTanStackFormApi,
-    ComboboxProps,
-    ComboboxOption,
-    TanStackFieldValidators,
-    TanStackShowError
-  } from "./types.js";
+  import type { ComboboxProps } from "./types.js";
 
   let {
     formApi,
@@ -41,16 +23,14 @@
     emptyText = "No option found.",
     class: className,
     contentClass,
-    disabled = false
+    disabled = false,
   }: ComboboxProps = $props();
 
   let open = $state(false);
   let value = $state("");
 
   function renderCombobox(fieldApi?: AnyFieldApi) {
-    const currentValue = fieldApi
-      ? String(fieldApi.state.value ?? "")
-      : value;
+    const currentValue = fieldApi ? String(fieldApi.state.value ?? "") : value;
 
     const selected = options.find((o) => o.value === currentValue);
 
@@ -85,14 +65,14 @@
       {@const ctx = renderCombobox(fieldApi)}
 
       <Popover
-        open={open}
-        onOpenChange={(next) => {
+        {open}
+        onOpenChange={(next: boolean) => {
           open = next;
           if (!next) fieldApi.handleBlur();
         }}
       >
         <PopoverTrigger>
-          {#snippet child({ props })}
+          {#snippet child({ props }: { props: ButtonProps })}
             <Button
               variant="outline"
               role="combobox"
@@ -121,12 +101,7 @@
                     disabled={option.disabled}
                     onSelect={() => ctx.select(option.value)}
                   >
-                    <CheckIcon
-                      class={cn(
-                        "mr-2",
-                        ctx.currentValue === option.value ? "opacity-100" : "opacity-0"
-                      )}
-                    />
+                    <CheckIcon class={cn("mr-2", ctx.currentValue === option.value ? "opacity-100" : "opacity-0")} />
                     {option.label}
                   </CommandItem>
                 {/each}
@@ -141,9 +116,9 @@
   <!-- Standalone mode -->
   {@const ctx = renderCombobox()}
 
-  <Popover open={open} onOpenChange={(v) => (open = v)}>
+  <Popover {open} onOpenChange={(v: boolean) => (open = v)}>
     <PopoverTrigger>
-      {#snippet child({ props })}
+      {#snippet child({ props }: { props: ButtonProps })}
         <Button
           variant="outline"
           role="combobox"
@@ -172,12 +147,7 @@
                 disabled={option.disabled}
                 onSelect={() => ctx.select(option.value)}
               >
-                <CheckIcon
-                  class={cn(
-                    "mr-2",
-                    ctx.currentValue === option.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
+                <CheckIcon class={cn("mr-2", ctx.currentValue === option.value ? "opacity-100" : "opacity-0")} />
                 {option.label}
               </CommandItem>
             {/each}
