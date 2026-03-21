@@ -57,8 +57,6 @@ class BlazeGraphQlQueryHandlerIntegrationTest {
   private CriteriaBuilderFactory criteriaBuilderFactory;
   @Autowired
   private EntityViewManager entityViewManager;
-  @Autowired
-  private EntityManager entityManager;
   private CriteriaBuilder<AccountEntity> criteriaBuilder;
 
   /**

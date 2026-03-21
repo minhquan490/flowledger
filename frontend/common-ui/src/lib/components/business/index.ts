@@ -3,13 +3,15 @@ import PatientAvatar from "./PatientAvatar.svelte";
 import PatientIdentifierBadge from "./PatientIdentifierBadge.svelte";
 import GenderBadge from "./GenderBadge.svelte";
 import AgeDisplay from "./AgeDisplay.svelte";
+import AppSidebar from "./AppSidebar.svelte";
 
 export {
     PersonName,
     PatientAvatar,
     PatientIdentifierBadge,
     GenderBadge,
-    AgeDisplay
+    AgeDisplay,
+    AppSidebar
 };
 
 export * from "./contact/index.js";

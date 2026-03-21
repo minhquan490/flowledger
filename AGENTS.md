@@ -207,17 +207,17 @@ Avoid large shared `util` packages.
 
 ### 14. Forbidden Practices
 
-| Practice                        | Status |
-|---------------------------------|--------|
-| Field injection                 | ❌     |
-| Returning `null` collections    | ❌     |
-| Methods without Javadoc         | ❌     |
-| Magic numbers or strings        | ❌     |
-| Deep nested logic (> 3 levels)  | ❌     |
-| Reflection for normal logic     | ❌     |
-| Methods > 50 lines              | ❌     |
-| `System.out.println`            | ❌     |
-| Setting entity IDs manually     | ❌     |
+| Practice                       | Status |
+|--------------------------------|--------|
+| Field injection                | ❌      |
+| Returning `null` collections   | ❌      |
+| Methods without Javadoc        | ❌      |
+| Magic numbers or strings       | ❌      |
+| Deep nested logic (> 3 levels) | ❌      |
+| Reflection for normal logic    | ❌      |
+| Methods > 50 lines             | ❌      |
+| `System.out.println`           | ❌      |
+| Setting entity IDs manually    | ❌      |
 
 ---
 

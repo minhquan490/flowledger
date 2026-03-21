@@ -8,6 +8,8 @@ import Divider from "./Divider.svelte";
 import AspectRatio from "./AspectRatio.svelte";
 import ScrollArea from "./ScrollArea.svelte";
 import RootLayout from "./RootLayout.svelte";
+import PageHeader from "./PageHeader.svelte";
+import AppLayout from "./AppLayout.svelte";
 
 export {
   Container,
@@ -19,7 +21,9 @@ export {
   Divider,
   AspectRatio,
   ScrollArea,
-  RootLayout
+  RootLayout,
+  PageHeader,
+  AppLayout
 };
 
 export {containerVariants, type ContainerSize} from "./Container.svelte";

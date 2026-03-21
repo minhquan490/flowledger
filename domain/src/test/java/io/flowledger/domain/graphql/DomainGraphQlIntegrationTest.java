@@ -9,7 +9,6 @@ import com.blazebit.persistence.PaginatedCriteriaBuilder;
 import com.blazebit.persistence.RestrictionBuilder;
 import com.blazebit.persistence.view.EntityViewManager;
 import com.blazebit.persistence.view.EntityViewSetting;
-import io.flowledger.domain.account.aggregate.Account;
 import io.flowledger.domain.account.view.AccountView;
 import io.flowledger.domain.identity.view.UserView;
 import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
@@ -43,12 +42,9 @@ import static org.mockito.Mockito.when;
 /**
  * Integration test ensuring GraphQL queries can resolve domain views.
  */
-@SpringBootTest(
-    classes = DomainGraphQlIntegrationTest.TestApplication.class,
-    properties = "spring.autoconfigure.exclude="
-        + "io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration,"
-        + "io.flowledger.platform.rbac.infrastructure.autoconfigure.RbacAutoConfiguration"
-)
+@SpringBootTest(classes = DomainGraphQlIntegrationTest.TestApplication.class, properties = "spring.autoconfigure.exclude="
+    + "io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration,"
+    + "io.flowledger.platform.rbac.infrastructure.autoconfigure.RbacAutoConfiguration")
 class DomainGraphQlIntegrationTest {
 
   @Autowired
@@ -59,9 +55,6 @@ class DomainGraphQlIntegrationTest {
 
   @Autowired
   private EntityViewManager entityViewManager;
-
-  @Autowired
-  private EntityManager entityManager;
 
   @SuppressWarnings("rawtypes")
   private PaginatedCriteriaBuilder pagedQuery;
