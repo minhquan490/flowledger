@@ -1,5 +1,6 @@
 package io.flowledger.platform.rbac.application.service;
 
+import io.flowledger.core.web.HttpStatusCodes;
 import io.flowledger.platform.graphql.application.GraphQlApiException;
 import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
 import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
@@ -7,10 +8,11 @@ import io.flowledger.platform.rbac.domain.role.valueobject.RbacFieldAction;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.UUID;
 
 import static io.flowledger.platform.rbac.application.service.RbacPermissionService.getRbacResourceEntity;
 
@@ -20,8 +22,6 @@ import static io.flowledger.platform.rbac.application.service.RbacPermissionServ
 @Component
 @RequiredArgsConstructor
 public class RbacFieldPermissionService {
-  private static final int FORBIDDEN_STATUS = 403;
-
   private final RbacRoleResolver roleResolver;
 
   @PersistenceContext
@@ -50,7 +50,10 @@ public class RbacFieldPermissionService {
     }
     List<String> allowed = allowedFields(resource, action);
     if (allowed.isEmpty()) {
-      throw new GraphQlApiException("No field permissions available for " + action + " on " + resource + ".", FORBIDDEN_STATUS);
+      throw new GraphQlApiException(
+          "No field permissions available for " + action + " on " + resource + ".",
+          HttpStatusCodes.FORBIDDEN
+      );
     }
     List<String> denied = fieldNames.stream()
         .filter(field -> !allowed.contains(field))
@@ -58,7 +61,7 @@ public class RbacFieldPermissionService {
     if (!denied.isEmpty()) {
       throw new GraphQlApiException(
           "Access denied for action " + action + " on fields " + denied + " for resource " + resource + ".",
-          FORBIDDEN_STATUS
+          HttpStatusCodes.FORBIDDEN
       );
     }
   }
@@ -93,7 +96,7 @@ public class RbacFieldPermissionService {
             from RbacRoleFieldActionPermission p
             join RbacResourceField rf on p.resourceFieldId = rf.id
             where p.roleId in :roleIds
-              and rf.resourceId = :resourceId
+              and rf.resource.id = :resourceId
               and p.action = :action
               and p.allowed = true
             """,

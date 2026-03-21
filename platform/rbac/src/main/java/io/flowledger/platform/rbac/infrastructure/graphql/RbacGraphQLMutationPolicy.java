@@ -3,6 +3,7 @@ package io.flowledger.platform.rbac.infrastructure.graphql;
 import io.flowledger.platform.graphql.application.GraphQlApiException;
 import io.flowledger.platform.graphql.application.GraphQLMutationPolicy;
 import io.flowledger.platform.graphql.domain.GraphQlMutationRequest;
+import io.flowledger.core.web.HttpStatusCodes;
 import io.flowledger.platform.rbac.application.service.RbacFieldPermissionService;
 import io.flowledger.platform.rbac.application.service.RbacPermissionService;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
@@ -18,8 +19,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class RbacGraphQLMutationPolicy implements GraphQLMutationPolicy {
-  private static final int BAD_REQUEST_STATUS = 400;
-
   private final RbacPermissionService permissionService;
   private final RbacFieldPermissionService fieldPermissionService;
 
@@ -32,7 +31,10 @@ public class RbacGraphQLMutationPolicy implements GraphQLMutationPolicy {
   @Override
   public void validateWriteAccess(String resource, GraphQlMutationRequest request) {
     if (request == null || request.action() == null) {
-      throw new GraphQlApiException("Mutation request must include an action.", BAD_REQUEST_STATUS);
+      throw new GraphQlApiException(
+          "Mutation request must include an action.",
+          HttpStatusCodes.BAD_REQUEST
+      );
     }
     RbacAction action = resolveAction(request.action());
     permissionService.assertHasPermission(resource, action);
@@ -55,7 +57,10 @@ public class RbacGraphQLMutationPolicy implements GraphQLMutationPolicy {
       case "CREATE" -> RbacAction.CREATE;
       case "UPDATE" -> RbacAction.UPDATE;
       case "DELETE" -> RbacAction.DELETE;
-      default -> throw new GraphQlApiException("Unsupported mutation action: " + action, BAD_REQUEST_STATUS);
+      default -> throw new GraphQlApiException(
+          "Unsupported mutation action: " + action,
+          HttpStatusCodes.BAD_REQUEST
+      );
     };
   }
 }

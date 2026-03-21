@@ -22,6 +22,7 @@ configurations {
 }
 
 dependencies {
+  api project(':platform:core')
   api project(":platform:graphql")
   api project(':platform:query')
   api libs.spring.boot.starter

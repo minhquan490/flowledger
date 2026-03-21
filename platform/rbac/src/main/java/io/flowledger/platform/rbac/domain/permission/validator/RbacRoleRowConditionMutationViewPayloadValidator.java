@@ -3,6 +3,7 @@ package io.flowledger.platform.rbac.domain.permission.validator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.flowledger.core.web.HttpStatusCodes;
 import io.flowledger.platform.graphql.application.GraphQlValidationException;
 import io.flowledger.platform.graphql.application.JpaSchemaGraphQlMutationPayloadValidator;
 import io.flowledger.platform.query.blaze.filter.BlazeFilterOperators;
@@ -23,7 +24,6 @@ import java.util.regex.Pattern;
 public class RbacRoleRowConditionMutationViewPayloadValidator extends JpaSchemaGraphQlMutationPayloadValidator {
   private static final String CONDITION_JSON_FIELD = "conditionJson";
   private static final Pattern FIELD_PATTERN = Pattern.compile("^[A-Za-z_][A-Za-z0-9_.]*$");
-  private static final int BAD_REQUEST_STATUS = 400;
 
   private final ObjectMapper objectMapper;
 
@@ -235,7 +235,7 @@ public class RbacRoleRowConditionMutationViewPayloadValidator extends JpaSchemaG
   private void throwConditionValidation(String message) {
     throw new GraphQlValidationException(
         "Mutation payload validation failed.",
-        BAD_REQUEST_STATUS,
+        HttpStatusCodes.BAD_REQUEST,
         Map.of(CONDITION_JSON_FIELD, message)
     );
   }

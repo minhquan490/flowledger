@@ -1,6 +1,7 @@
 package io.flowledger.platform.rbac.application.service;
 
 import io.flowledger.platform.graphql.application.GraphQlApiException;
+import io.flowledger.core.web.HttpStatusCodes;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
 import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
@@ -18,8 +19,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class RbacPermissionService {
-  private static final int FORBIDDEN_STATUS = 403;
-
   private final RbacRoleResolver roleResolver;
 
   @PersistenceContext
@@ -33,7 +32,10 @@ public class RbacPermissionService {
    */
   public void assertHasPermission(String resource, RbacAction action) {
     if (!hasPermission(resource, action)) {
-      throw new GraphQlApiException("Access denied for " + action + " on resource " + resource + ".", FORBIDDEN_STATUS);
+      throw new GraphQlApiException(
+          "Access denied for " + action + " on resource " + resource + ".",
+          HttpStatusCodes.FORBIDDEN
+      );
     }
   }
 
@@ -81,7 +83,10 @@ public class RbacPermissionService {
     query.setParameter("name", resource);
     List<RbacResource> results = query.getResultList();
     if (results.isEmpty()) {
-      throw new GraphQlApiException("No RBAC resource registered for " + resource + ".", 404);
+      throw new GraphQlApiException(
+          "No RBAC resource registered for " + resource + ".",
+          HttpStatusCodes.NOT_FOUND
+      );
     }
     return results.getFirst();
   }

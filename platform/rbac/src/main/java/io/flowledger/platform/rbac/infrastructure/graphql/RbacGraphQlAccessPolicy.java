@@ -4,6 +4,7 @@ import io.flowledger.platform.graphql.application.GraphQlAccessPolicy;
 import io.flowledger.platform.graphql.application.GraphQlApiException;
 import io.flowledger.platform.graphql.domain.GraphQlReadRequest;
 import io.flowledger.platform.graphql.domain.GraphQlSearchRequest;
+import io.flowledger.core.web.HttpStatusCodes;
 import io.flowledger.platform.rbac.application.context.RbacRequestContext;
 import io.flowledger.platform.rbac.application.context.RbacRequestContextHolder;
 import io.flowledger.platform.rbac.application.service.RbacFieldPermissionService;
@@ -19,8 +20,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class RbacGraphQlAccessPolicy implements GraphQlAccessPolicy {
-  private static final int FORBIDDEN_STATUS = 403;
-
   private final RbacPermissionService permissionService;
   private final RbacFieldPermissionService fieldPermissionService;
 
@@ -69,7 +68,10 @@ public class RbacGraphQlAccessPolicy implements GraphQlAccessPolicy {
   private List<String> filterReadableFields(String resource, List<String> requested) {
     List<String> allowed = fieldPermissionService.readableFields(resource);
     if (allowed.isEmpty()) {
-      throw new GraphQlApiException("No readable fields available for " + resource + ".", FORBIDDEN_STATUS);
+      throw new GraphQlApiException(
+          "No readable fields available for " + resource + ".",
+          HttpStatusCodes.FORBIDDEN
+      );
     }
     if (requested == null || requested.isEmpty()) {
       return allowed;
@@ -78,7 +80,10 @@ public class RbacGraphQlAccessPolicy implements GraphQlAccessPolicy {
         .filter(allowed::contains)
         .toList();
     if (filtered.isEmpty()) {
-      throw new GraphQlApiException("No readable fields available for " + resource + ".", FORBIDDEN_STATUS);
+      throw new GraphQlApiException(
+          "No readable fields available for " + resource + ".",
+          HttpStatusCodes.FORBIDDEN
+      );
     }
     return filtered;
   }
