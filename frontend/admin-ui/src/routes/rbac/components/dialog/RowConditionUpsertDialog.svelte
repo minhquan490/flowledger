@@ -1,18 +1,24 @@
 <script lang="ts">
+  import { parseDate, type DateValue } from '@internationalized/date';
   import {
     Dialog,
     Select,
     PrimaryButton,
     OutlinedButton,
+    IconButton,
+    GhostButton,
+    Switch,
     Input,
-    Switch
+    DatePicker
   } from '@medisphere/common-ui';
-  import { createForm } from '@tanstack/svelte-form';
-  import { z } from 'zod';
   import { useRolesQuery } from '../../hooks/useRoles';
   import { useResourcesQuery } from '../../hooks/useResources';
-  import type { RowCondition, ResourceField } from '../../types';
-  import { Plus, Trash2, Info, ChevronDown, ChevronUp } from '@lucide/svelte';
+  import type { RowCondition, ResourceField, RuleLeaf, RuleGroup, RuleNode } from '../../types';
+  import { Plus, Trash2, Info, ChevronDown, ChevronUp, FolderPlus } from '@lucide/svelte';
+  import { 
+    parseConditionJson as jsonToGroup, 
+    nodeToSentence
+  } from '../../utils/condition';
 
   export interface Props {
     open?: boolean;
@@ -26,10 +32,17 @@
   const resourcesQuery = useResourcesQuery();
 
   let showAdvanced = $state(false);
-  let loadedResourceId = $state('');
-  let isInitializing = $state(false);
-  let isInitialized = $state(false);
-  let renderKey = $state(0); // incrementing this forces the form UI to remount
+  let isSubmitting = $state(false);
+
+  // ── Form state (plain $state, no TanStack Form) ────────────────────────────
+  let formId = $state('');
+  let roleId = $state('');
+  let resourceId = $state('');
+  let rootGroup: RuleGroup = $state(makeGroup());
+
+  // ── Ready flag: don't render the form until queries + data are loaded ──────
+  // This ensures Select components always mount with options already available
+  let isReady = $state(false);
 
   const roleOptions = $derived(
     (rolesQuery.data ?? []).map((r) => ({ value: r.id, label: r.name }))
@@ -37,6 +50,11 @@
   const resourceOptions = $derived(
     (resourcesQuery.data ?? []).map((r) => ({ value: r.id, label: r.name }))
   );
+  const fields = $derived(
+    (resourcesQuery.data ?? []).find((r) => r.id === resourceId)?.fields ?? []
+  );
+  const fieldOptions = $derived(fields.map((f) => ({ value: f.fieldName, label: f.fieldName })));
+  const isFormComplete = $derived(!!(roleId && resourceId && rootGroup.children.length > 0));
 
   const OPERATORS_BY_TYPE: Record<string, { label: string; value: string }[]> = {
     text: [
@@ -66,490 +84,507 @@
     ]
   };
 
-  const ALL_OPERATORS = Object.values(OPERATORS_BY_TYPE).flat();
 
-  type Rule = {
-    id: string;
-    field: string;
-    op: string;
-    value: unknown;
-  };
+  // ── Factories ──────────────────────────────────────────────────────────────
 
-  function jsonToRules(json: unknown): { rules: Rule[]; logicalOp: 'AND' | 'OR' } {
-    try {
-      if (!json || json === '{}') {
-        return {
-          rules: [{ id: crypto.randomUUID(), field: '', op: 'eq', value: '' }],
-          logicalOp: 'AND'
-        };
-      }
-
-      const parsed = typeof json === 'string' ? JSON.parse(json) : json;
-
-      if (parsed.rules && Array.isArray(parsed.rules)) {
-        return {
-          rules: parsed.rules.map(
-            (r: { id: unknown; field: unknown; op: unknown; value: unknown }) => ({
-              id: r.id || crypto.randomUUID(),
-              field: r.field || '',
-              op: r.op || 'eq',
-              value: r.value ?? ''
-            })
-          ),
-          logicalOp: parsed.logicalOp || 'AND'
-        };
-      }
-
-      const rules: Rule[] = [];
-      Object.entries(parsed).forEach(([field, data]) => {
-        if (field === 'logicalOp') return;
-        const ruleData = data as { op?: string; value?: unknown };
-        if (ruleData && typeof ruleData === 'object' && 'op' in ruleData) {
-          rules.push({
-            id: crypto.randomUUID(),
-            field,
-            op: ruleData.op || 'eq',
-            value: ruleData.value ?? ''
-          });
-        }
-      });
-
-      return {
-        rules: rules.length ? rules : [{ id: crypto.randomUUID(), field: '', op: 'eq', value: '' }],
-        logicalOp: parsed.logicalOp || 'AND'
-      };
-    } catch {
-      return {
-        rules: [{ id: crypto.randomUUID(), field: '', op: 'eq', value: '' }],
-        logicalOp: 'AND'
-      };
-    }
+  function makeLeaf(overrides?: Partial<RuleLeaf>): RuleLeaf {
+    return { kind: 'rule', id: crypto.randomUUID(), field: '', op: 'eq', value: '', ...overrides };
   }
 
-  function rulesToJson(rules: Rule[], logicalOp: 'AND' | 'OR', isPreview: boolean = false): string {
-    const validRules = rules.filter((r) => r.field && r.value !== undefined && r.value !== '');
+  function makeGroup(overrides?: { logicalOp?: 'AND' | 'OR'; children?: RuleNode[] }): RuleGroup {
+    return {
+      kind: 'group',
+      id: crypto.randomUUID(),
+      logicalOp: overrides?.logicalOp ?? 'AND',
+      children: overrides?.children ?? [makeLeaf()]
+    };
+  }
 
-    const normalizedRules = isPreview
-      ? validRules.map((v) => ({
-          field: v.field,
-          op: v.op,
-          value: v.value
-        }))
-      : validRules;
+  // ── JSON ↔ RuleGroup ───────────────────────────────────────────────────────
+  // (handled by shared utility)
 
-    return JSON.stringify(
-      {
-        logicalOp,
-        rules: normalizedRules
-      },
-      null,
-      2
+  function groupToJson(group: RuleGroup, pretty = false, hideId = false): string {
+    function clean(node: RuleNode): Record<string, unknown> | null {
+      if (node.kind === 'rule') {
+        if (!(node.field && node.value !== '' && node.value !== undefined)) return null;
+        if (hideId) {
+          return {
+            kind: node.kind,
+            field: node.field,
+            op: node.op,
+            value: node.value
+          };
+        }
+        return node as unknown as Record<string, unknown>;
+      }
+      const kids = node.children.map(clean).filter((c): c is Record<string, unknown> => c !== null);
+      if (!kids.length) return null;
+      if (hideId) {
+        return {
+          kind: node.kind,
+          logicalOp: node.logicalOp,
+          children: kids
+        };
+      }
+      return { ...node, children: kids };
+    }
+
+    const cleaned = clean(group) ?? {
+      kind: 'group' as const,
+      ...(hideId ? {} : { id: group.id }),
+      logicalOp: group.logicalOp,
+      children: []
+    };
+    return JSON.stringify(cleaned, null, pretty ? 2 : 0);
+  }
+
+  // ── Sentence preview ───────────────────────────────────────────────────────
+  // (handled by shared utility)
+
+  function getPreviewSentence(): string {
+    const roleName = roleOptions.find((r) => r.value === roleId)?.label ?? 'Role';
+    const resourceName = resourceOptions.find((r) => r.value === resourceId)?.label ?? 'Resource';
+    const sentence = nodeToSentence(rootGroup);
+    return sentence === '…'
+      ? `Define rules for ${roleName} accessing ${resourceName}`
+      : `${roleName} can access ${resourceName} where ${sentence}`;
+  }
+
+  // ── Lifecycle ──────────────────────────────────────────────────────────────
+  // Wait until both queries are done AND the dialog is open before showing the
+  // form. This guarantees Select components mount with options already in place.
+
+  let prevOpen = false;
+
+  $effect(() => {
+    const queriesReady = !rolesQuery.isPending && !resourcesQuery.isPending;
+
+    if (open && !prevOpen) {
+      // Dialog just opened — wait for queries then initialise
+      isReady = false;
+
+      if (queriesReady) {
+        initForm();
+      }
+      // If queries aren't ready yet, the effect below will fire when they settle
+    }
+
+    if (!open && prevOpen) {
+      isReady = false;
+    }
+
+    prevOpen = open;
+  });
+
+  // Separate effect: fires whenever query loading state changes while dialog is open
+  $effect(() => {
+    const queriesReady = !rolesQuery.isPending && !resourcesQuery.isPending;
+    if (open && queriesReady && !isReady) {
+      initForm();
+    }
+  });
+
+  function initForm() {
+    if (initialData) {
+      formId = initialData.id;
+      roleId = initialData.roleId;
+      resourceId = initialData.resourceId;
+      rootGroup = jsonToGroup(initialData.conditionJson);
+    } else {
+      formId = '';
+      roleId = '';
+      resourceId = '';
+      rootGroup = makeGroup();
+    }
+    isReady = true;
+  }
+
+  // ── Tree mutators ──────────────────────────────────────────────────────────
+
+  function updateNode(root: RuleGroup, id: string, updater: (n: RuleNode) => RuleNode): RuleGroup {
+    function walk(node: RuleNode): RuleNode {
+      if (node.id === id) return updater(node);
+      if (node.kind === 'group') return { ...node, children: node.children.map(walk) };
+      return node;
+    }
+    return walk(root) as RuleGroup;
+  }
+
+  function deleteNode(root: RuleGroup, id: string): RuleGroup {
+    function walk(node: RuleNode): RuleNode | null {
+      if (node.id === id) return null;
+      if (node.kind === 'group') {
+        const children = node.children.map(walk).filter((c): c is RuleNode => c !== null);
+        return { ...node, children };
+      }
+      return node;
+    }
+    return walk(root) as RuleGroup;
+  }
+
+  function mutate(updater: (g: RuleGroup) => RuleGroup) {
+    rootGroup = updater(rootGroup);
+  }
+
+  function addLeafToGroup(groupId: string) {
+    mutate((root) =>
+      updateNode(root, groupId, (n) =>
+        n.kind === 'group' ? { ...n, children: [...n.children, makeLeaf()] } : n
+      )
     );
   }
 
-  const rowConditionSchema = z.object({
-    id: z.string(),
-    roleId: z.string().min(1),
-    resourceId: z.string().min(1),
-    logicalOp: z.enum(['AND', 'OR']),
-    rules: z.array(
-      z.object({
-        id: z.string(),
-        field: z.string().min(1),
-        op: z.string().min(1),
-        value: z.unknown()
-      })
-    ),
-    conditionJson: z.string()
-  });
+  function addGroupToGroup(groupId: string) {
+    mutate((root) =>
+      updateNode(root, groupId, (n) =>
+        n.kind === 'group' ? { ...n, children: [...n.children, makeGroup()] } : n
+      )
+    );
+  }
 
-  type RowConditionFormValues = z.infer<typeof rowConditionSchema>;
+  function handleLeafFieldChange(leafId: string, fieldName: string) {
+    const f = fields.find((f) => f.fieldName === fieldName);
+    const defaultOp = OPERATORS_BY_TYPE[f?.fieldType ?? 'text'][0].value;
+    mutate((root) =>
+      updateNode(root, leafId, (n) =>
+        n.kind === 'rule' ? { ...n, field: fieldName, op: defaultOp, value: '' } : n
+      )
+    );
+  }
 
-  const form = createForm(() => ({
-    defaultValues: {
-      id: initialData?.id ?? '',
-      roleId: initialData?.roleId ?? '',
-      resourceId: initialData?.resourceId ?? '',
-      logicalOp: 'AND',
-      rules: [{ id: crypto.randomUUID(), field: '', op: 'eq', value: '' }],
-      conditionJson: initialData?.conditionJson ?? '{}'
-    } as RowConditionFormValues,
-    onSubmit: async ({ value }) => {
-      const finalJson = rulesToJson(value.rules, value.logicalOp);
-      console.log('Submit', finalJson);
+  function handleLeafOpChange(leafId: string, op: string) {
+    mutate((root) => updateNode(root, leafId, (n) => (n.kind === 'rule' ? { ...n, op } : n)));
+  }
+
+  function handleLeafValueChange(leafId: string, value: unknown) {
+    mutate((root) => updateNode(root, leafId, (n) => (n.kind === 'rule' ? { ...n, value } : n)));
+  }
+
+  function handleGroupLogicalOpChange(groupId: string, logicalOp: 'AND' | 'OR') {
+    mutate((root) =>
+      updateNode(root, groupId, (n) => (n.kind === 'group' ? { ...n, logicalOp } : n))
+    );
+  }
+
+  function handleResourceChange(val: string) {
+    if (val !== resourceId) {
+      resourceId = val;
+      rootGroup = makeGroup();
+    }
+  }
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+
+  async function handleSubmit() {
+    if (!roleId || !resourceId) return;
+    isSubmitting = true;
+    try {
+      const finalJson = groupToJson(rootGroup);
+      console.log('Submit', { id: formId, roleId, resourceId, conditionJson: finalJson });
       open = false;
       onClose?.();
-    },
-    validators: {
-      onChange: ({ value }) => rowConditionSchema.safeParse(value).error?.issues[0]?.message
+    } finally {
+      isSubmitting = false;
     }
-  }));
-
-  const getFields = (resourceId: string): ResourceField[] => {
-    return (resourcesQuery.data ?? []).find((r) => r.id === resourceId)?.fields ?? [];
-  };
-
-  $effect(() => {
-    if (open) {
-      if (!isInitialized) {
-        isInitialized = true;
-        isInitializing = true;
-
-        if (initialData) {
-          const parsed = jsonToRules(initialData.conditionJson);
-          loadedResourceId = initialData.resourceId ?? '';
-
-          form.reset({
-            id: initialData.id,
-            roleId: initialData.roleId ?? '',
-            resourceId: initialData.resourceId ?? '',
-            logicalOp: parsed.logicalOp,
-            rules: parsed.rules,
-            conditionJson: initialData.conditionJson
-          });
-        } else {
-          loadedResourceId = '';
-          form.reset();
-        }
-
-        // Increment renderKey to force the entire form UI to remount,
-        // so all Select components pick up the new values from scratch.
-        // Then clear isInitializing after a tick.
-        renderKey += 1;
-        setTimeout(() => {
-          isInitializing = false;
-        }, 50);
-      }
-    } else {
-      if (isInitialized) {
-        isInitialized = false;
-        form.reset();
-        loadedResourceId = '';
-      }
-    }
-  });
-
-  function addRule() {
-    form.setFieldValue('rules', (old) => [
-      ...old,
-      { id: crypto.randomUUID(), field: '', op: 'eq', value: '' }
-    ]);
-  }
-
-  function removeRule(index: number) {
-    form.setFieldValue('rules', (old) => old.filter((_, i) => i !== index));
-  }
-
-  function handleFieldChange(index: number, fieldName: string, fields: ResourceField[]) {
-    // Guard against firing during form initialization / reset
-    if (isInitializing) return;
-
-    const field = fields.find((f) => f.fieldName === fieldName);
-    const defaultOp = OPERATORS_BY_TYPE[field?.fieldType ?? 'text'][0].value;
-
-    form.setFieldValue(`rules[${index}].field`, fieldName);
-    form.setFieldValue(`rules[${index}].op`, defaultOp);
-    form.setFieldValue(`rules[${index}].value`, '');
-  }
-
-  function getSentence(values: RowConditionFormValues) {
-    const roleName = roleOptions.find((r) => r.value === values.roleId)?.label ?? 'Role';
-    const resourceName =
-      resourceOptions.find((r) => r.value === values.resourceId)?.label ?? 'Resource';
-
-    const ruleTexts = values.rules
-      .filter((r) => r.field && r.value)
-      .map((r) => {
-        const opLabel = ALL_OPERATORS.find((o) => o.value === r.op)?.label ?? r.op;
-        return `${r.field} ${opLabel.toLowerCase()} "${r.value}"`;
-      });
-
-    if (ruleTexts.length === 0) {
-      return `Define rules for ${roleName} accessing ${resourceName}`;
-    }
-
-    const rulesStr =
-      ruleTexts.length > 1 ? ruleTexts.join(` ${values.logicalOp.toLowerCase()} `) : ruleTexts[0];
-
-    return `${roleName} can access ${resourceName} where ${rulesStr}`;
   }
 </script>
+
+<!-- ── Recursive group snippet ─────────────────────────────────────────────── -->
+
+{#snippet renderGroup(group: RuleGroup, allFields: ResourceField[], depth: number)}
+  <div
+    class="space-y-3 rounded-xl border p-4 shadow-sm {depth === 0
+      ? 'bg-card'
+      : 'border-primary/25 bg-primary/5'}"
+  >
+    <!-- Group header -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2 rounded-full border bg-muted px-3 py-1.5 shadow-sm">
+        <span
+          class="text-[10px] font-bold transition-colors {group.logicalOp === 'AND'
+            ? 'text-primary'
+            : 'text-muted-foreground'}">AND</span
+        >
+        <Switch
+          checked={group.logicalOp === 'OR'}
+          onCheckedChange={(v: boolean) => handleGroupLogicalOpChange(group.id, v ? 'OR' : 'AND')}
+        />
+        <span
+          class="text-[10px] font-bold transition-colors {group.logicalOp === 'OR'
+            ? 'text-primary'
+            : 'text-muted-foreground'}">OR</span
+        >
+      </div>
+
+      <div class="flex items-center gap-1">
+        <GhostButton
+          onclick={() => addLeafToGroup(group.id)}
+          disabled={!resourceId}
+          class="flex h-7 items-center gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+        >
+          <Plus class="h-3 w-3" /> Rule
+        </GhostButton>
+
+        {#if depth < 2}
+          <GhostButton
+            onclick={() => addGroupToGroup(group.id)}
+            disabled={!resourceId}
+            class="flex h-7 items-center gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <FolderPlus class="h-3 w-3" /> Group
+          </GhostButton>
+        {/if}
+
+        {#if depth > 0}
+          <IconButton
+            variant="ghost"
+            size="icon-sm"
+            onclick={() => mutate((root) => deleteNode(root, group.id))}
+            ariaLabel="Remove group"
+            class="text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 class="h-3 w-3" />
+          </IconButton>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Children -->
+    <div class="space-y-3 {depth > 0 ? 'pl-3' : ''}">
+      {#each group.children as child (child.id)}
+        {#if child.kind === 'group'}
+          {@render renderGroup(child, allFields, depth + 1)}
+        {:else}
+          {@const leaf = child as RuleLeaf}
+          {@const fieldType =
+            allFields.find((f) => f.fieldName === leaf.field)?.fieldType ?? 'text'}
+          {@const fieldDef = allFields.find((f) => f.fieldName === leaf.field)}
+
+          <div class="group flex items-start gap-3">
+            <div class="grid flex-1 grid-cols-3 gap-3">
+              <!-- Field -->
+              <div class="space-y-1">
+                {#if depth === 0}
+                  <label
+                    class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+                    for={`leaf_field_${leaf.id}`}>Field</label
+                  >
+                {/if}
+                <Select
+                  name={`leaf_field_${leaf.id}`}
+                  placeholder="Select field"
+                  options={fieldOptions}
+                  disabled={!resourceId}
+                  value={leaf.field}
+                  onValueChange={(val: string) => handleLeafFieldChange(leaf.id, val)}
+                />
+              </div>
+
+              <!-- Operator -->
+              <div class="space-y-1">
+                {#if depth === 0}
+                  <label
+                    class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+                    for={`leaf_op_${leaf.id}`}>Operator</label
+                  >
+                {/if}
+                <Select
+                  name={`leaf_op_${leaf.id}`}
+                  placeholder="Op"
+                  options={OPERATORS_BY_TYPE[fieldType]}
+                  disabled={!leaf.field}
+                  value={leaf.op}
+                  onValueChange={(val: string) => handleLeafOpChange(leaf.id, val)}
+                />
+              </div>
+
+              <!-- Value -->
+              <div class="space-y-1">
+                {#if depth === 0}
+                  <label
+                    class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+                    for={`leaf_value_${leaf.id}`}>Value</label
+                  >
+                {/if}
+                {#if fieldDef?.fieldType === 'enum'}
+                  <Select
+                    name={`leaf_value_${leaf.id}`}
+                    placeholder="Value"
+                    options={fieldDef.options?.map((o) => ({ value: o, label: o })) ?? []}
+                    disabled={!leaf.field}
+                    value={leaf.value as string | undefined}
+                    onValueChange={(val: string) => handleLeafValueChange(leaf.id, val)}
+                  />
+                {:else if fieldDef?.fieldType === 'date'}
+                  <DatePicker
+                    disabled={!leaf.field}
+                    value={leaf.value ? parseDate(leaf.value as string) : undefined}
+                    onValueChange={(val: DateValue | undefined) => handleLeafValueChange(leaf.id, val?.toString())}
+                  />
+                {:else if fieldDef?.fieldType === 'number'}
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    disabled={!leaf.field}
+                    value={leaf.value as number}
+                    oninput={(e: Event) => handleLeafValueChange(leaf.id, (e.target as HTMLInputElement).valueAsNumber)}
+                  />
+                {:else}
+                  <Input
+                    type="text"
+                    placeholder="Value"
+                    disabled={!leaf.field}
+                    value={leaf.value as string}
+                    oninput={(e: Event) => handleLeafValueChange(leaf.id, (e.target as HTMLInputElement).value)}
+                  />
+                {/if}
+              </div>
+            </div>
+
+            {#if group.children.length > 1}
+              <IconButton
+                variant="ghost"
+                size="icon-sm"
+                onclick={() => mutate((root) => deleteNode(root, leaf.id))}
+                ariaLabel="Remove rule"
+                class="mt-6 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-destructive"
+              >
+                <Trash2 class="h-4 w-4" />
+              </IconButton>
+            {/if}
+          </div>
+        {/if}
+      {/each}
+    </div>
+  </div>
+{/snippet}
+
+<!-- ── Dialog ──────────────────────────────────────────────────────────────── -->
 
 <Dialog
   bind:open
   title={initialData ? 'Edit Row Condition' : 'Create Row Condition'}
   description="Define rules to control which rows this role can access."
-  class="sm:max-w-[700px]"
+  class="sm:max-w-[750px]"
 >
-  {#key renderKey}
+  {#if !isReady}
+    <!-- Loading state while queries settle -->
+    <div class="flex h-48 items-center justify-center">
+      <div class="flex flex-col items-center gap-2 text-muted-foreground">
+        <div
+          class="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"
+        ></div>
+        <span class="text-xs">Loading...</span>
+      </div>
+    </div>
+  {:else}
+    <!-- Full form — only mounts once both queries are resolved and state is initialised.
+         No {#key} needed here; isReady going false→true already unmounts/remounts. -->
     <form
       onsubmit={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        form.handleSubmit();
+        handleSubmit();
       }}
       class="space-y-6 pt-2"
     >
-      <form.Subscribe selector={(s) => s.values}>
-        {#snippet children(values)}
-          {@const fields = getFields(values.resourceId)}
-          {@const fieldOptions = fields.map((f) => ({ value: f.fieldName, label: f.fieldName }))}
-          {@const isFormComplete = !!(
-            values.roleId &&
-            values.resourceId &&
-            values.rules.every((r) => r.field && r.op && r.value)
-          )}
+      <div class="max-h-[65vh] space-y-6 overflow-y-auto px-1">
+        <!-- Role + Resource -->
+        <div class="mt-2 grid grid-cols-2 gap-6 rounded-xl border bg-muted/30 p-4">
+          <Select
+            name="roleId"
+            label="Role"
+            placeholder="Select a role..."
+            options={roleOptions}
+            value={roleId}
+            required
+            onValueChange={(val: string) => {
+              roleId = val;
+            }}
+          />
+          <Select
+            name="resourceId"
+            label="Resource"
+            placeholder="Select a resource..."
+            options={resourceOptions}
+            value={resourceId}
+            required
+            onValueChange={handleResourceChange}
+          />
+        </div>
 
-          <div class="max-h-[60vh] space-y-6 overflow-y-auto px-1">
-            <!-- Context Selection -->
-            <div class="mt-2 grid grid-cols-2 gap-6 rounded-xl border bg-muted/30 p-4">
-              <Select
-                formApi={form as unknown as import('@medisphere/common-ui').AnyTanStackFormApi}
-                name="roleId"
-                label="Role"
-                placeholder="Select a role..."
-                options={roleOptions}
-                required
-              />
-              <Select
-                formApi={form as unknown as import('@medisphere/common-ui').AnyTanStackFormApi}
-                name="resourceId"
-                label="Resource"
-                placeholder="Select a resource..."
-                options={resourceOptions}
-                required
-                onValueChange={(val: string) => {
-                  // Guard against firing during initialization
-                  if (isInitializing) return;
-                  if (val && val !== loadedResourceId) {
-                    loadedResourceId = val;
-                    form.setFieldValue('rules', [
-                      { id: crypto.randomUUID(), field: '', op: 'eq', value: '' }
-                    ]);
-                  }
-                }}
-              />
-            </div>
+        <!-- Rule Builder -->
+        <div class="space-y-2">
+          <h3 class="text-sm font-semibold text-foreground/80">Rules</h3>
+          {@render renderGroup(rootGroup, fields, 0)}
+        </div>
 
-            <!-- Rule Builder -->
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-foreground/80">Rules</h3>
-                {#if values.rules.length > 1}
-                  <div
-                    class="flex items-center gap-2 rounded-full border bg-muted px-3 py-1.5 shadow-sm"
-                  >
-                    <span
-                      class="text-[10px] font-bold {values.logicalOp === 'AND'
-                        ? 'text-primary'
-                        : 'text-muted-foreground'} transition-colors">AND</span
-                    >
-                    <Switch
-                      checked={values.logicalOp === 'OR'}
-                      onCheckedChange={(checked: boolean) =>
-                        form.setFieldValue('logicalOp', checked ? 'OR' : 'AND')}
-                    />
-                    <span
-                      class="text-[10px] font-bold {values.logicalOp === 'OR'
-                        ? 'text-primary'
-                        : 'text-muted-foreground'} transition-colors">OR</span
-                    >
-                  </div>
-                {/if}
-              </div>
-
-              <div class="space-y-3">
-                {#each values.rules as rule, i (rule.id)}
-                  {@const fieldType =
-                    fields.find((f) => f.fieldName === rule.field)?.fieldType ?? 'text'}
-                  {@const field = fields.find((f) => f.fieldName === rule.field)}
-                  <div
-                    class="group relative flex items-start gap-3 rounded-xl border bg-card p-4 shadow-sm transition-all hover:shadow-md"
-                  >
-                    <div class="grid flex-1 grid-cols-3 gap-4">
-                      <!-- Field -->
-                      <div class="space-y-1.5">
-                        <label
-                          for={`field-${i}`}
-                          class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
-                          >Field</label
-                        >
-                        <Select
-                          formApi={form as unknown as import('@medisphere/common-ui').AnyTanStackFormApi}
-                          name={`rules[${i}].field`}
-                          placeholder="Select field"
-                          options={fieldOptions}
-                          disabled={!values.resourceId}
-                          value={rule.field}
-                          onValueChange={(val: string) => {
-                            // handleFieldChange already guards with isInitializing
-                            handleFieldChange(i, val, fields);
-                          }}
-                        />
-                      </div>
-
-                      <!-- Operator -->
-                      <div class="space-y-1.5">
-                        <label
-                          for={`op-${i}`}
-                          class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
-                          >Operator</label
-                        >
-                        <Select
-                          formApi={form as unknown as import('@medisphere/common-ui').AnyTanStackFormApi}
-                          name={`rules[${i}].op`}
-                          placeholder="Op"
-                          options={OPERATORS_BY_TYPE[fieldType]}
-                          disabled={!rule.field}
-                          value={rule.op}
-                          onValueChange={(val: string) => {
-                            if (isInitializing) return;
-                            form.setFieldValue(`rules[${i}].op`, val);
-                          }}
-                        />
-                      </div>
-
-                      <!-- Value -->
-                      <div class="space-y-1.5">
-                        <label
-                          for={`value-${i}`}
-                          class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
-                          >Value</label
-                        >
-                        {#if field?.fieldType === 'enum'}
-                          <Select
-                            formApi={form as unknown as import('@medisphere/common-ui').AnyTanStackFormApi}
-                            name={`rules[${i}].value`}
-                            placeholder="Value"
-                            options={field.options?.map((o) => ({ value: o, label: o })) ?? []}
-                            disabled={!rule.field}
-                            value={rule.value as string | undefined}
-                            onValueChange={(val: string) => {
-                              if (isInitializing) return;
-                              form.setFieldValue(`rules[${i}].value`, val);
-                            }}
-                          />
-                        {:else if field?.fieldType === 'date'}
-                          <Input
-                            formApi={form as unknown as import('@medisphere/common-ui').AnyTanStackFormApi}
-                            name={`rules[${i}].value`}
-                            type="date"
-                            disabled={!rule.field}
-                          />
-                        {:else if field?.fieldType === 'number'}
-                          <Input
-                            formApi={form as unknown as import('@medisphere/common-ui').AnyTanStackFormApi}
-                            name={`rules[${i}].value`}
-                            type="number"
-                            placeholder="0"
-                            disabled={!rule.field}
-                          />
-                        {:else}
-                          <Input
-                            formApi={form as unknown as import('@medisphere/common-ui').AnyTanStackFormApi}
-                            name={`rules[${i}].value`}
-                            placeholder="Value"
-                            disabled={!rule.field}
-                          />
-                        {/if}
-                      </div>
-                    </div>
-
-                    {#if values.rules.length > 1}
-                      <button
-                        type="button"
-                        onclick={() => removeRule(i)}
-                        class="mt-6 text-muted-foreground transition-all group-hover:opacity-100 hover:text-destructive sm:opacity-0"
-                        title="Remove rule"
-                      >
-                        <Trash2 class="h-4 w-4" />
-                      </button>
-                    {/if}
-                  </div>
-                {/each}
-
-                <button
-                  type="button"
-                  onclick={addRule}
-                  disabled={!values.resourceId}
-                  class="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed py-4 text-sm font-medium text-muted-foreground transition-all hover:border-solid hover:bg-muted/40 hover:text-foreground disabled:opacity-40"
-                >
-                  <Plus class="h-4 w-4" />
-                  Add rule
-                </button>
-              </div>
-            </div>
-
-            <!-- Preview Section -->
-            <div
-              class="relative overflow-hidden rounded-2xl border bg-primary/5 p-6 shadow-inner ring-1 ring-primary/10"
-            >
-              <div class="absolute -top-4 -right-4 text-primary/5">
-                <Info class="h-24 w-24" />
-              </div>
-              <div class="relative flex flex-col gap-2">
-                <span
-                  class="flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-primary/60 uppercase"
-                >
-                  <Info class="h-3 w-3" />
-                  Rule Preview
-                </span>
-                <p class="text-lg font-medium tracking-tight text-foreground/90 italic">
-                  "{getSentence(values)}"
-                </p>
-              </div>
-            </div>
-
-            <!-- Advanced JSON Tool -->
-            <div class="space-y-2 pt-2">
-              <button
-                type="button"
-                onclick={() => (showAdvanced = !showAdvanced)}
-                class="flex items-center gap-2 px-1 text-[10px] font-bold tracking-widest text-muted-foreground/60 uppercase transition-colors hover:text-primary"
-              >
-                {#if showAdvanced}<ChevronUp class="h-3 w-3" />{:else}<ChevronDown
-                    class="h-3 w-3"
-                  />{/if}
-                Developer View (JSON)
-              </button>
-
-              {#if showAdvanced}
-                <div class="rounded-xl border bg-muted/40 p-4 font-mono shadow-inner">
-                  <pre
-                    class="max-h-32 overflow-auto text-[10px] leading-relaxed text-muted-foreground">{rulesToJson(
-                      values.rules,
-                      values.logicalOp,
-                      true
-                    )}</pre>
-                </div>
-              {/if}
-            </div>
+        <!-- Preview -->
+        <div
+          class="relative overflow-hidden rounded-2xl border bg-primary/5 p-6 shadow-inner ring-1 ring-primary/10"
+        >
+          <div class="absolute -top-4 -right-4 text-primary/5">
+            <Info class="h-24 w-24" />
           </div>
-
-          <div class="flex justify-end gap-3 border-t pt-6">
-            <OutlinedButton
-              type="button"
-              onclick={() => {
-                open = false;
-                if (onClose) onClose();
-              }}
+          <div class="relative flex flex-col gap-2">
+            <span
+              class="flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-primary/60 uppercase"
             >
-              Cancel
-            </OutlinedButton>
-            <PrimaryButton
-              type="submit"
-              disabled={form.state.isSubmitting || !isFormComplete}
-              class="px-8"
-            >
-              {#if form.state.isSubmitting}
-                Saving...
-              {:else}
-                {initialData ? 'Update Condition' : 'Create Condition'}
-              {/if}
-            </PrimaryButton>
+              <Info class="h-3 w-3" />
+              Rule Preview
+            </span>
+            <p class="text-lg font-medium tracking-tight text-foreground/90 italic">
+              "{getPreviewSentence()}"
+            </p>
           </div>
-        {/snippet}
-      </form.Subscribe>
+        </div>
+
+        <!-- Developer JSON -->
+        <div class="space-y-2 pt-2">
+          <GhostButton
+            onclick={() => (showAdvanced = !showAdvanced)}
+            class="flex items-center gap-2 px-1 text-[10px] font-bold tracking-widest text-muted-foreground/60 uppercase transition-colors hover:text-primary"
+          >
+            {#if showAdvanced}
+              <ChevronUp class="h-3 w-3" />
+            {:else}
+              <ChevronDown class="h-3 w-3" />
+            {/if}
+            Developer View (JSON)
+          </GhostButton>
+
+          {#if showAdvanced}
+            <div class="rounded-xl border bg-muted/40 p-4 font-mono shadow-inner">
+              <pre
+                class="max-h-48 overflow-auto text-[10px] leading-relaxed text-muted-foreground">{groupToJson(
+                  rootGroup,
+                  true,
+                  true
+                )}</pre>
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-end gap-3 border-t pt-6">
+        <OutlinedButton
+          type="button"
+          onclick={() => {
+            open = false;
+            onClose?.();
+          }}
+        >
+          Cancel
+        </OutlinedButton>
+        <PrimaryButton type="submit" disabled={isSubmitting || !isFormComplete} class="px-8">
+          {#if isSubmitting}
+            Saving...
+          {:else}
+            {initialData ? 'Update Condition' : 'Create Condition'}
+          {/if}
+        </PrimaryButton>
+      </div>
     </form>
-  {/key}
+  {/if}
 </Dialog>

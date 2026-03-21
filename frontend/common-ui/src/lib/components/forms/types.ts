@@ -53,8 +53,13 @@ export interface ComboboxProps {
 export interface DatePickerProps {
   value?: DateValue;
   placeholder?: string;
-  class?: string;
+  class?: any;
   disabled?: boolean;
+  onValueChange?: (value: DateValue | undefined) => void;
+  label?: string;
+  required?: boolean;
+  helperText?: string;
+  id?: string;
 }
 
 export interface DateRangePickerProps {
@@ -86,7 +91,7 @@ export interface FormFieldProps {
   required?: boolean;
   helperText?: string;
   errorText?: string;
-  class?: string;
+  class?: any;
   children?: Snippet;
 }
 
@@ -142,6 +147,7 @@ export interface SelectOption {
 export interface SelectProps {
   formApi?: AnyTanStackFormApi;
   name?: string;
+  id?: string;
   value?: string;
   options?: SelectOption[];
   placeholder?: string;

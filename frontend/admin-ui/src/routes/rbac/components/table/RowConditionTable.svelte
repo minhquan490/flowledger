@@ -7,6 +7,12 @@
   import { useResourcesQuery } from '../../hooks/useResources';
   import RowConditionUpsertDialog from '../dialog/RowConditionUpsertDialog.svelte';
   import type { RowCondition } from '../../types';
+  import { 
+    parseConditionJson, 
+    getAccessLogicPreview, 
+    OPERATOR_LABELS, 
+    flattenRules 
+  } from '../../utils/condition';
 
   const rowConditionsQuery = useRowConditionsQuery();
   const rolesQuery = useRolesQuery();
@@ -33,41 +39,8 @@
     dialogOpen = true;
   }
 
-  const OPERATOR_LABELS: Record<string, string> = {
-    eq: 'is',
-    ne: 'is not',
-    gt: '>',
-    ge: '>=',
-    gte: '>=',
-    lt: '<',
-    le: '<=',
-    lte: '<=',
-    like: 'contains',
-    sw: 'starts with',
-    in: 'is in'
-  };
-
-  function parseRules(json: string) {
-    try {
-      return JSON.parse(json) as Record<string, { op: string; value: unknown }>;
-    } catch {
-      return {};
-    }
-  }
-
   function getSentence(item: RowCondition) {
-    const rules = parseRules(item.conditionJson);
-    const ruleKeys = Object.keys(rules);
-    
-    if (ruleKeys.length === 0) return `${item.roleName} can access all ${item.resourceName} rows.`;
-
-    const ruleTexts = ruleKeys.map(field => {
-      const data = rules[field];
-      const op = OPERATOR_LABELS[data.op] || data.op;
-      return `${field} ${op} "${data.value}"`;
-    });
-
-    return `${item.roleName} can access ${item.resourceName} where ${ruleTexts.join(' AND ')}.`;
+    return getAccessLogicPreview(item.roleName, item.resourceName, item.conditionJson);
   }
 </script>
 
@@ -118,21 +91,22 @@
         {:else if column.key === 'resourceName'}
           <span class="text-sm font-medium text-foreground/80">{item.resourceName}</span>
         {:else if column.key === 'conditions'}
-          {@const rules = parseRules(item.conditionJson)}
+          {@const root = parseConditionJson(item.conditionJson)}
+          {@const flatRules = flattenRules(root)}
           <div class="flex flex-wrap gap-1.5">
-            {#each Object.entries(rules).slice(0, 2) as [field, data] (field)}
+            {#each flatRules.slice(0, 2) as leaf (leaf.id)}
                <Chip class="h-6 px-2 text-[10px] bg-muted/50 border-muted-foreground/10">
-                <span class="text-muted-foreground mr-1">{field}</span>
-                <span class="font-bold text-foreground/70">{OPERATOR_LABELS[data.op] || data.op}</span>
-                <span class="ml-1 italic opacity-70">"{data.value}"</span>
+                <span class="text-muted-foreground mr-1">{leaf.field}</span>
+                <span class="font-bold text-foreground/70">{OPERATOR_LABELS[leaf.op] || leaf.op}</span>
+                <span class="ml-1 italic opacity-70">"{leaf.value}"</span>
                </Chip>
             {/each}
-            {#if Object.keys(rules).length > 2}
+            {#if flatRules.length > 2}
               <Badge variant="outline" class="h-6 text-[10px] text-muted-foreground border-dashed">
-                +{Object.keys(rules).length - 2} more
+                +{flatRules.length - 2} more
               </Badge>
             {/if}
-            {#if Object.keys(rules).length === 0}
+            {#if flatRules.length === 0}
               <span class="text-[10px] text-muted-foreground italic">No filters (View All)</span>
             {/if}
           </div>
@@ -162,6 +136,7 @@
       {/snippet}
 
       {#snippet expanded({ item }: { item: RowCondition })}
+        {@const root = parseConditionJson(item.conditionJson)}
         <div class="bg-muted/10 p-6">
           <div class="flex flex-col gap-6">
             <div class="flex items-start gap-4">
@@ -183,12 +158,12 @@
                     Internal Rule Set
                   </div>
                   <div class="space-y-2">
-                    {#each Object.entries(parseRules(item.conditionJson)) as [field, data] (field)}
+                    {#each flattenRules(root) as leaf (leaf.id)}
                       <div class="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2 text-sm border border-muted-foreground/5 transition-colors hover:bg-muted/50">
-                        <span class="font-medium text-foreground/70">{field}</span>
+                        <span class="font-medium text-foreground/70">{leaf.field}</span>
                         <div class="flex items-center gap-2">
-                          <Badge variant="outline" class="text-[10px] font-mono">{data.op}</Badge>
-                          <span class="font-mono text-xs text-primary">{JSON.stringify(data.value)}</span>
+                          <Badge variant="outline" class="text-[10px] font-mono">{leaf.op}</Badge>
+                          <span class="font-mono text-xs text-primary">{JSON.stringify(leaf.value)}</span>
                         </div>
                       </div>
                     {/each}

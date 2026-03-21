@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Input as UIInput } from "../ui/input/index.js";
-  import TanStackFormField from "./TanStackFormField.svelte";
+  import { TanStackFormField, FormField } from "./index.js";
 
   import type { AnyFieldApi } from "@tanstack/form-core";
   import type {
@@ -45,13 +45,14 @@
   <TanStackFormField
     form={formApi}
     {name}
+    {id}
     {label}
     {required}
     {helperText}
     {validators}
     showError={showError ?? "touched"}
   >
-    {#snippet control(field)}
+    {#snippet control(field: AnyFieldApi)}
       <UIInput
         {...rest}
         id={id ?? field.name}
@@ -64,5 +65,13 @@
     {/snippet}
   </TanStackFormField>
 {:else}
-  <UIInput {...rest} class={className} {id} />
+  <FormField
+    {id}
+    {label}
+    {required}
+    {helperText}
+    class={className}
+  >
+    <UIInput {...rest} class={className} {id} />
+  </FormField>
 {/if}

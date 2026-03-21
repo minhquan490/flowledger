@@ -37,10 +37,46 @@ export type Permission = {
   updatedAt: string;
 };
 
+// ── Rule tree types (used by RowConditionDialog) ───────────────────────────
+
+export interface RuleLeaf {
+  kind: 'rule';
+  id: string;
+  field: string;
+  op: string;
+  value: unknown;
+}
+
+export interface RuleGroup {
+  kind: 'group';
+  id: string;
+  logicalOp: 'AND' | 'OR';
+  children: RuleNode[];
+}
+
+export type RuleNode = RuleLeaf | RuleGroup;
+
+// ── RowCondition ───────────────────────────────────────────────────────────
+// conditionJson stores a serialized RuleGroup tree, e.g.:
+// {
+//   "kind": "group",
+//   "id": "...",
+//   "logicalOp": "AND",
+//   "children": [
+//     { "kind": "rule", "id": "...", "field": "email", "op": "eq", "value": "foo" },
+//     {
+//       "kind": "group", "id": "...", "logicalOp": "OR",
+//       "children": [
+//         { "kind": "rule", "id": "...", "field": "status", "op": "eq", "value": "active" }
+//       ]
+//     }
+//   ]
+// }
+
 export type RowCondition = {
   id: string;
-  roleId?: string;
-  resourceId?: string;
+  roleId: string;
+  resourceId: string;
   roleName: string;
   resourceName: string;
   conditionJson: string;
