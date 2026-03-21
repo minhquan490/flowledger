@@ -12,33 +12,31 @@ export function useRowConditionsQuery() {
       return [
         { 
           id: "1", 
-          roleName: "Sales Agent", 
-          resourceName: "Order", 
-          conditionJson: '{"amount": {"op": "lt", "value": 5000}, "status": {"op": "eq", "value": "SUBMITTED"}}', 
+          roleId: "1",
+          roleName: "Super Administrator", 
+          resourceId: "1",
+          resourceName: "Users", 
+          conditionJson: '{"email": {"op": "like", "value": "%@medisphere.com"}}', 
           createdAt: new Date().toISOString(), 
           updatedAt: new Date().toISOString() 
         },
         { 
           id: "2", 
-          roleName: "Manager", 
-          resourceName: "Department", 
-          conditionJson: '{"departmentId": {"op": "eq", "value": "SALES"}}', 
+          roleId: "2",
+          roleName: "Standard User", 
+          resourceId: "2",
+          resourceName: "Roles", 
+          conditionJson: '{"code": {"op": "ne", "value": "SUPER_ADMIN"}}', 
           createdAt: new Date().toISOString(), 
           updatedAt: new Date().toISOString() 
         },
         { 
           id: "3", 
-          roleName: "HR Specialist", 
-          resourceName: "Employee", 
-          conditionJson: '{"age": {"op": "between", "value": [18, 65]}, "department": {"op": "in", "value": ["HR", "IT", "Engineering"]}}', 
-          createdAt: new Date().toISOString(), 
-          updatedAt: new Date().toISOString() 
-        },
-        { 
-          id: "4", 
-          roleName: "Auditor", 
-          resourceName: "FinancialReport", 
-          conditionJson: '{"revenue": {"op": "between", "value": {"from": 10000, "to": 500000}}}', 
+          roleId: "3",
+          roleName: "Content Editor", 
+          resourceId: "3",
+          resourceName: "Settings", 
+          conditionJson: '{"category": {"op": "in", "value": ["CMS", "UI"]}}', 
           createdAt: new Date().toISOString(), 
           updatedAt: new Date().toISOString() 
         }

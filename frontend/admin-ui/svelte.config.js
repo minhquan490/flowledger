@@ -16,7 +16,8 @@ const config = {
       '$types': 'src/lib/types',
       '$utils': 'src/lib/utils',
       '$constants': 'src/lib/constants',
-      '$schemas': 'src/lib/schemas'
+      '$schemas': 'src/lib/schemas',
+      '$routes': 'src/routes'
     }
   },
   vitePlugin: {

@@ -1,9 +1,9 @@
 <script lang="ts">
   import { Tabs } from '@medisphere/common-ui';
-  import RoleTable from './components/RoleTable.svelte';
-  import ResourceTable from './components/ResourceTable.svelte';
-  import PermissionTable from './components/PermissionTable.svelte';
-  import RowConditionTable from './components/RowConditionTable.svelte';
+  import RoleTable from './components/table/RoleTable.svelte';
+  import ResourceTable from './components/table/ResourceTable.svelte';
+  import PermissionTable from './components/table/PermissionTable.svelte';
+  import RowConditionTable from './components/table/RowConditionTable.svelte';
 
   let selectedTab = $state('roles');
 </script>

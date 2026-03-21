@@ -11,7 +11,7 @@
   } from "./types.js";
 
   let {
-    form,
+    formApi,
     name,
     helperText,
     showError,
@@ -23,21 +23,15 @@
     description,
     class: className,
     id
-  }: CheckboxProps & {
-    form?: AnyTanStackFormApi;
-    name?: string;
-    helperText?: string;
-    showError?: TanStackShowError;
-    validators?: TanStackFieldValidators;
-  } = $props();
+  }: CheckboxProps = $props();
 
   const inputId = $derived(id ?? `checkbox-${Math.random().toString(36).slice(2, 9)}`);
 </script>
 
-{#if form && name}
+{#if formApi && name}
   <TanStackFormField
-    {form}
-    name={name ?? ''}
+    form={formApi}
+    name={name}
     label={label}
     helperText={helperText ?? description}
     showError={showError ?? 'never'}
@@ -45,18 +39,13 @@
     class={className}
   >
     {#snippet control(fieldApi: import("@tanstack/form-core").AnyFieldApi)}
-      <div class="flex items-start gap-2">
-        <UICheckbox
-          checked={Boolean(fieldApi.state.value)}
-          indeterminate={indeterminate}
-          {disabled}
-          id={fieldApi.name}
-          onCheckedChange={(next) => fieldApi.handleChange(next)}
-        />
-        {#if description}
-          <div class="text-muted-foreground text-xs">{description}</div>
-        {/if}
-      </div>
+      <UICheckbox
+        checked={Boolean(fieldApi.state.value)}
+        indeterminate={indeterminate}
+        {disabled}
+        id={fieldApi.name}
+        onCheckedChange={(next) => fieldApi.handleChange(next)}
+      />
     {/snippet}
   </TanStackFormField>
 {:else}

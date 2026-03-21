@@ -10,9 +10,9 @@ export function usePermissionsQuery() {
       // Mock network delay
       await new Promise((resolve) => setTimeout(resolve, 500));
       return [
-        { id: "1", roleName: "Admin", resource: "User", action: "READ", isAllowed: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: "2", roleName: "Admin", resource: "User", action: "WRITE", isAllowed: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: "3", roleName: "User", resource: "User", action: "READ", isAllowed: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { id: "1", roleId: "1", roleName: "Super Administrator", resourceId: "1", resource: "Users", action: "READ", isAllowed: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { id: "2", roleId: "1", roleName: "Super Administrator", resourceId: "1", resource: "Users", action: "CREATE", isAllowed: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { id: "3", roleId: "2", roleName: "Standard User", resourceId: "3", resource: "Settings", action: "READ", isAllowed: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       ];
     }
   }));

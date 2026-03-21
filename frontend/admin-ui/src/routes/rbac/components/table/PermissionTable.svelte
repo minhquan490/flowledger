@@ -2,7 +2,9 @@
   import { SmartTable } from '$lib/components';
   import { IconButton, PrimaryButton, type DataTableColumn } from '@medisphere/common-ui';
   import { Pencil, Trash2, Plus } from '@lucide/svelte';
-  import { usePermissionsQuery } from '../hooks/usePermissions';
+  import { usePermissionsQuery } from '../../hooks/usePermissions';
+  import PermissionUpsertDialog from '../dialog/PermissionUpsertDialog.svelte';
+  import type { Permission } from '../../types';
 
   const columns: DataTableColumn[] = [
     { key: 'id', label: 'ID' },
@@ -16,6 +18,19 @@
   ];
 
   const permissionsQuery = usePermissionsQuery();
+  
+  let dialogOpen = $state(false);
+  let editingPermission: Permission | undefined = $state(undefined);
+
+  function openCreateDialog() {
+    editingPermission = undefined;
+    dialogOpen = true;
+  }
+
+  function openEditDialog(item: Permission) {
+    editingPermission = item;
+    dialogOpen = true;
+  }
 </script>
 
 <div class="w-full">
@@ -31,17 +46,17 @@
       searchKeys={['roleId', 'resourceId', 'action']}
     >
       {#snippet headerAction()}
-        <PrimaryButton size="sm">
+        <PrimaryButton size="sm" onclick={openCreateDialog}>
           <Plus class="h-4 w-4" />
           Create Permission
         </PrimaryButton>
       {/snippet}
-      {#snippet cell({ column, value }: { column: DataTableColumn; value: unknown })}
+      {#snippet cell({ column, value, item }: { column: DataTableColumn; value: unknown; item: Permission })}
         {#if column.key === 'createdAt' || column.key === 'updatedAt'}
           {new Date(value as string).toLocaleDateString()}
         {:else if column.key === 'actions'}
-          <div class="flex justify-end gap-2">
-            <IconButton variant="ghost" size="icon-sm" ariaLabel="Edit Permission">
+          <div class="flex justify-end gap-2" role="presentation" onclick={(e) => e.stopPropagation()}>
+            <IconButton variant="ghost" size="icon-sm" ariaLabel="Edit Permission" onclick={() => openEditDialog(item)}>
               <Pencil class="h-4 w-4" />
             </IconButton>
             <IconButton
@@ -58,5 +73,7 @@
         {/if}
       {/snippet}
     </SmartTable>
+    
+    <PermissionUpsertDialog bind:open={dialogOpen} initialData={editingPermission} />
   {/if}
 </div>

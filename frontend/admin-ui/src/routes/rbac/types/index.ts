@@ -3,6 +3,8 @@ export type ResourceField = {
   resourceId: string;
   fieldName: string;
   sourceMethodName: string;
+  fieldType: 'text' | 'number' | 'date' | 'enum';
+  options?: string[];
 };
 
 export type Resource = {
@@ -25,6 +27,8 @@ export type Role = {
 
 export type Permission = {
   id: string;
+  roleId?: string;
+  resourceId?: string;
   roleName: string;
   resource: string;
   action: string;
@@ -35,6 +39,8 @@ export type Permission = {
 
 export type RowCondition = {
   id: string;
+  roleId?: string;
+  resourceId?: string;
   roleName: string;
   resourceName: string;
   conditionJson: string;

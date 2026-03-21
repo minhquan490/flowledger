@@ -22,36 +22,27 @@
   import type {
     AnyTanStackFormApi,
     ComboboxProps,
+    ComboboxOption,
     TanStackFieldValidators,
     TanStackShowError
   } from "./types.js";
 
   let {
-    form,
+    formApi,
     name,
     label,
     required,
     helperText,
     showError,
     validators,
-
     options = [],
     placeholder = "Select option",
     searchPlaceholder = "Search...",
     emptyText = "No option found.",
-
     class: className,
     contentClass,
     disabled = false
-  }: ComboboxProps & {
-    form?: AnyTanStackFormApi;
-    name?: string;
-    label?: string;
-    required?: boolean;
-    helperText?: string;
-    showError?: TanStackShowError;
-    validators?: TanStackFieldValidators;
-  } = $props();
+  }: ComboboxProps = $props();
 
   let open = $state(false);
   let value = $state("");
@@ -78,10 +69,10 @@
   }
 </script>
 
-{#if form && name}
+{#if formApi && name}
   <!-- TanStack mode -->
   <TanStackFormField
-    {form}
+    form={formApi}
     {name}
     {label}
     required={required ?? false}

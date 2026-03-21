@@ -2,7 +2,9 @@
   import { SmartTable } from '$lib/components';
   import { IconButton, PrimaryButton, type DataTableColumn } from '@medisphere/common-ui';
   import { Pencil, Trash2, Plus } from '@lucide/svelte';
-  import { useRolesQuery } from '../hooks/useRoles';
+  import { useRolesQuery } from '../../hooks/useRoles';
+  import RoleUpsertDialog from '../dialog/RoleUpsertDialog.svelte';
+  import type { Role } from '../../types';
 
   const rolesQuery = useRolesQuery();
 
@@ -15,9 +17,22 @@
     { key: 'updatedAt', label: 'Updated At' },
     { key: 'actions', label: 'Actions', class: 'w-[100px] text-center' }
   ];
+
+  let dialogOpen = $state(false);
+  let editingRole: Role | undefined = $state(undefined);
+
+  function openCreateDialog() {
+    editingRole = undefined;
+    dialogOpen = true;
+  }
+
+  function openEditDialog(item: Role) {
+    editingRole = item;
+    dialogOpen = true;
+  }
 </script>
 
-<div>
+<div class="w-full">
   {#if rolesQuery.isPending}
     <p>Loading roles...</p>
   {:else if rolesQuery.isError}
@@ -30,17 +45,17 @@
       searchKeys={['code', 'name']}
     >
       {#snippet headerAction()}
-        <PrimaryButton size="sm">
+        <PrimaryButton size="sm" onclick={openCreateDialog}>
           <Plus class="h-4 w-4" />
           Create Role
         </PrimaryButton>
       {/snippet}
-      {#snippet cell({ column, value }: { column: DataTableColumn; value: unknown })}
+      {#snippet cell({ column, value, item }: { column: DataTableColumn; value: unknown; item: Role })}
         {#if column.key === 'createdAt' || column.key === 'updatedAt'}
           {new Date(value as string).toLocaleDateString()}
         {:else if column.key === 'actions'}
-          <div class="flex justify-end gap-2">
-            <IconButton variant="ghost" size="icon-sm" ariaLabel="Edit Role">
+          <div class="flex justify-end gap-2" role="presentation" onclick={(e) => e.stopPropagation()}>
+            <IconButton variant="ghost" size="icon-sm" ariaLabel="Edit Role" onclick={() => openEditDialog(item)}>
               <Pencil class="h-4 w-4" />
             </IconButton>
             <IconButton
@@ -57,5 +72,7 @@
         {/if}
       {/snippet}
     </SmartTable>
+    
+    <RoleUpsertDialog bind:open={dialogOpen} initialData={editingRole} />
   {/if}
 </div>

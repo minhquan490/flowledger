@@ -4,14 +4,9 @@
   import { cn } from "../../utils.js";
   import TanStackFormField from "./TanStackFormField.svelte";
   import type { SwitchProps } from "./types.js";
-  import type {
-    AnyTanStackFormApi,
-    TanStackFieldValidators,
-    TanStackShowError
-  } from "./types.js";
 
   let {
-    form,
+    formApi,
     name,
     helperText,
     showError,
@@ -21,22 +16,17 @@
     label,
     description,
     class: className,
-    id
-  }: SwitchProps & {
-    form: AnyTanStackFormApi;
-    name: string;
-    helperText?: string;
-    showError?: TanStackShowError;
-    validators?: TanStackFieldValidators;
-  } = $props();
+    id,
+    onCheckedChange
+  }: SwitchProps = $props();
 
   const inputId = $derived(id ?? `switch-${Math.random().toString(36).slice(2, 9)}`);
 </script>
 
-{#if form && name}
+{#if formApi && name}
   <TanStackFormField
-    {form}
-    name={name ?? ''}
+    form={formApi}
+    {name}
     label={label}
     helperText={helperText ?? description}
     showError={showError ?? 'never'}
@@ -44,25 +34,27 @@
     class={className}
   >
     {#snippet control(fieldApi: import("@tanstack/form-core").AnyFieldApi)}
-      <div class="flex items-center gap-2">
-        <UISwitch
-          checked={Boolean(fieldApi.state.value)}
-          {disabled}
-          id={fieldApi.name}
-          onCheckedChange={(next) => fieldApi.handleChange(next)}
-        />
-        {#if label || description}
-          <Label for={fieldApi.name} class="grid gap-1">
-            {#if label}<span>{label}</span>{/if}
-            {#if description}<span class="text-muted-foreground text-xs">{description}</span>{/if}
-          </Label>
-        {/if}
-      </div>
+      <UISwitch
+        checked={Boolean(fieldApi.state.value)}
+        {disabled}
+        id={fieldApi.name}
+        onCheckedChange={(next) => {
+          fieldApi.handleChange(next);
+          if (onCheckedChange) onCheckedChange(next);
+        }}
+      />
     {/snippet}
   </TanStackFormField>
 {:else}
   <div class={cn("flex items-center gap-2", className)}>
-    <UISwitch bind:checked {disabled} id={inputId} />
+    <UISwitch 
+      bind:checked 
+      {disabled} 
+      id={inputId} 
+      onCheckedChange={(next) => {
+        if (onCheckedChange) onCheckedChange(next);
+      }}
+    />
     {#if label || description}
       <Label for={inputId} class="grid gap-1">
         {#if label}<span>{label}</span>{/if}
@@ -71,3 +63,4 @@
     {/if}
   </div>
 {/if}
+

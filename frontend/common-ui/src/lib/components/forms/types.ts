@@ -11,6 +11,8 @@ import type { ComponentProps, Snippet } from "svelte";
 import { createForm } from "@tanstack/svelte-form";
 
 export interface CheckboxProps {
+  formApi?: AnyTanStackFormApi;
+  name?: string;
   checked?: boolean;
   indeterminate?: boolean;
   disabled?: boolean;
@@ -18,6 +20,9 @@ export interface CheckboxProps {
   description?: string;
   class?: string;
   id?: string;
+  validators?: TanStackFieldValidators;
+  showError?: TanStackShowError;
+  helperText?: string;
 }
 
 export interface ComboboxOption {
@@ -28,6 +33,8 @@ export interface ComboboxOption {
 }
 
 export interface ComboboxProps {
+  formApi?: AnyTanStackFormApi;
+  name?: string;
   value?: string;
   options?: ComboboxOption[];
   placeholder?: string;
@@ -36,6 +43,11 @@ export interface ComboboxProps {
   class?: string;
   contentClass?: string;
   disabled?: boolean;
+  validators?: TanStackFieldValidators;
+  showError?: TanStackShowError;
+  label?: string;
+  required?: boolean;
+  helperText?: string;
 }
 
 export interface DatePickerProps {
@@ -128,6 +140,8 @@ export interface SelectOption {
 }
 
 export interface SelectProps {
+  formApi?: AnyTanStackFormApi;
+  name?: string;
   value?: string;
   options?: SelectOption[];
   placeholder?: string;
@@ -135,21 +149,40 @@ export interface SelectProps {
   triggerClass?: string;
   contentClass?: string;
   disabled?: boolean;
+  label?: string;
+  required?: boolean;
+  helperText?: string;
+  validators?: TanStackFieldValidators;
+  showError?: TanStackShowError;
+  onValueChange?: (value: string) => void;
 }
 
 export interface SwitchProps {
+  formApi?: AnyTanStackFormApi;
+  name?: string;
   checked?: boolean;
   disabled?: boolean;
   label?: string;
   description?: string;
   class?: string;
   id?: string;
+  validators?: TanStackFieldValidators;
+  showError?: TanStackShowError;
+  helperText?: string;
+  onCheckedChange?: (checked: boolean) => void;
 }
 
 export type TextareaProps = ComponentProps<
   typeof import("../ui/textarea/index.js").Textarea
 > & {
+  formApi?: AnyTanStackFormApi;
+  name?: string;
   value?: string;
+  label?: string;
+  required?: boolean;
+  helperText?: string;
+  validators?: TanStackFieldValidators;
+  showError?: TanStackShowError;
 };
 
 // TanStack form helpers (used by TanStackFormField.svelte)
@@ -248,18 +281,17 @@ export type TanStackTypedFormApi<
 
 // Convenience type for non-generic component props (when you don't care about TData)
 export type AnyTanStackFormApi = TanStackTypedFormApi<
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
   any,
-  FormValidateOrFn<any> | undefined,
-  FormValidateOrFn<any> | undefined,
-  FormAsyncValidateOrFn<any> | undefined,
-  FormValidateOrFn<any> | undefined,
-  FormAsyncValidateOrFn<any> | undefined,
-  FormValidateOrFn<any> | undefined,
-  FormAsyncValidateOrFn<any> | undefined,
-  FormValidateOrFn<any> | undefined,
-  FormAsyncValidateOrFn<any> | undefined,
-  FormAsyncValidateOrFn<any> | undefined,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
+  any,
   any
 >;
 
