@@ -1,6 +1,7 @@
 <script lang="ts">
   import { AppSidebar } from "../business/index.js";
   import PageHeader from "./PageHeader.svelte";
+  import { Card, CardContent } from "../ui/card/index.js";
   import type { SidebarItem } from "../navigation/SidebarShell.svelte";
   import type { BreadcrumbEntry } from "../navigation/Breadcrumb.svelte";
   import type { Snippet, Component } from "svelte";
@@ -50,6 +51,10 @@
     />
   </div>
   <div class="min-h-0">
-    {@render children?.()}
+    <Card>
+      <CardContent class="px-6 py-0">
+        {@render children?.()}
+      </CardContent>
+    </Card>
   </div>
 </AppSidebar>

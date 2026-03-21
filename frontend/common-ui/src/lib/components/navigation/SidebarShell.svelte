@@ -42,7 +42,7 @@
   }: Props = $props();
 </script>
 
-<SidebarProvider bind:open>
+<SidebarProvider bind:open class="h-svh overflow-hidden">
   <Sidebar {collapsible}>
     <SidebarHeader>
       <SidebarMenu>
@@ -111,7 +111,7 @@
       <SidebarTrigger />
       <span class="text-sm font-medium">{title}</span>
     </header>
-    <main class="flex-1 overflow-auto p-4">
+    <main class="flex-1 overflow-auto p-4 pt-0">
       {@render children?.()}
     </main>
   </SidebarInset>

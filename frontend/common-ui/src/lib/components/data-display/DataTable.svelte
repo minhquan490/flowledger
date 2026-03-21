@@ -12,11 +12,12 @@
   export interface DataTableColumn {
     key: string;
     label: string;
+    class?: string;
   }
 
   export interface Props {
     columns?: DataTableColumn[];
-    rows?: Array<Record<string, string | number | boolean | null | undefined>>;
+    rows?: Array<Record<string, any>>;
     class?: string;
     emptyText?: string;
   }
@@ -34,7 +35,7 @@
     <TableHeader>
       <TableRow>
         {#each columns as col}
-          <TableHead>{col.label}</TableHead>
+          <TableHead class={col.class}>{col.label}</TableHead>
         {/each}
       </TableRow>
     </TableHeader>
@@ -50,7 +51,7 @@
         {#each rows as row, rowIdx (`row-${rowIdx}`)}
           <TableRow>
             {#each columns as col, colIdx (`cell-${rowIdx}-${colIdx}`)}
-              <TableCell>{row[col.key] ?? "-"}</TableCell>
+              <TableCell class={col.class}>{row[col.key] ?? "-"}</TableCell>
             {/each}
           </TableRow>
         {/each}

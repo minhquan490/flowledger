@@ -1,5 +1,6 @@
 import Table from "./Table.svelte";
 import DataTable from "./DataTable.svelte";
+import ExpandableTable from "./ExpandableTable.svelte";
 import List from "./List.svelte";
 import DescriptionList from "./DescriptionList.svelte";
 import Stat from "./Stat.svelte";
@@ -14,6 +15,7 @@ import Skeleton from "./Skeleton.svelte";
 export {
   Table,
   DataTable,
+  ExpandableTable,
   List,
   DescriptionList,
   Stat,

@@ -1,7 +1,9 @@
 <script lang="ts">
 	import ButtonBase, { type ButtonBaseProps } from "./ButtonBase.svelte";
 
-	let { variant = "ghost", ...restProps }: ButtonBaseProps = $props();
+	let { variant = "ghost", children, ...restProps }: ButtonBaseProps = $props();
 </script>
 
-<ButtonBase {variant} {...restProps} />
+<ButtonBase {variant} {...restProps}>
+	{@render children?.()}
+</ButtonBase>
