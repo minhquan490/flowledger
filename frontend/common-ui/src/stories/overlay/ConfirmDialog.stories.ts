@@ -9,7 +9,8 @@ const meta = {
     title: "Confirm removal",
     description: "Are you sure you want to remove this item?",
     confirmText: "Remove",
-    cancelText: "Cancel"
+    cancelText: "Cancel",
+    open: true
   }
 } satisfies Meta<typeof ConfirmDialog>;
 

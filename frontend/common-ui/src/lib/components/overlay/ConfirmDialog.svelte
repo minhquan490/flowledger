@@ -40,13 +40,11 @@
 </script>
 
 <Dialog bind:open>
-  <DialogTrigger>
-    {#if trigger}
+  {#if trigger}
+    <DialogTrigger>
       {@render trigger()}
-    {:else}
-      <ButtonBase variant="outline">Open confirm</ButtonBase>
-    {/if}
-  </DialogTrigger>
+    </DialogTrigger>
+  {/if}
   <DialogContent>
     <DialogHeader>
       <DialogTitle>{title}</DialogTitle>
