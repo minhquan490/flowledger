@@ -1,9 +1,12 @@
 <script lang="ts">
   import { Dialog, Select, RadioGroup, PrimaryButton, OutlinedButton } from '@medisphere/common-ui';
+  import { LoaderCircle } from '@lucide/svelte';
   import { createForm } from '@tanstack/svelte-form';
   import { z } from 'zod';
   import { useRolesQuery } from '../../hooks/useRoles';
   import { useResourcesQuery } from '../../hooks/useResources';
+  import { useUpsertPermissionMutation } from '../../hooks/usePermissions';
+  import { toast } from 'svelte-sonner';
   import type { Permission } from '../../types';
 
   export interface Props {
@@ -37,6 +40,9 @@
   type PermissionFormValues = z.infer<typeof permissionSchema>;
   type Action = (typeof ACTIONS)[number];
 
+  const upsertMutation = useUpsertPermissionMutation();
+  let isSaving = $state(false);
+
   const form = createForm(() => ({
     defaultValues: {
       roleId: (initialData as unknown as { roleId?: string })?.roleId ?? '',
@@ -48,13 +54,23 @@
       onChange: ({ value }) => permissionSchema.safeParse(value).error?.issues[0]?.message
     },
     onSubmit: async ({ value }) => {
-      // Logic to submit mutation
-      console.log('Submit', {
-        ...value,
-        isAllowed: value.allowed === 'ALLOW'
-      });
-      open = false;
-      if (onClose) onClose();
+      isSaving = true;
+      try {
+        await upsertMutation.mutateAsync({
+          ...initialData,
+          roleId: value.roleId,
+          resourceId: value.resourceId,
+          action: value.action,
+          isAllowed: value.allowed === 'ALLOW'
+        } as Partial<Permission>);
+        toast.success(initialData ? 'Permission updated successfully' : 'Permission created successfully');
+        open = false;
+        if (onClose) onClose();
+      } catch {
+        toast.error('Failed to save permission. Please try again.');
+      } finally {
+        isSaving = false;
+      }
     }
   }));
 
@@ -248,9 +264,10 @@
             >
               Cancel
             </OutlinedButton>
-            <PrimaryButton type="submit" disabled={form.state.isSubmitting || !isFormComplete}>
-              {#if form.state.isSubmitting}
-                Creating...
+            <PrimaryButton type="submit" disabled={(upsertMutation.isPending || isSaving) || !isFormComplete}>
+              {#if upsertMutation.isPending || isSaving}
+                <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+                Saving...
               {:else}
                 {initialData ? 'Update Permission' : 'Create Permission'}
               {/if}

@@ -1,4 +1,4 @@
-import type { RuleNode, RuleGroup, RuleLeaf } from '../types';
+import type { RuleNode, RuleGroup, RuleLeaf, LogicalOp } from '../types';
 
 /**
  * Human-readable labels for operators.
@@ -61,7 +61,7 @@ export function parseConditionJson(json: string | unknown): RuleGroup {
       return {
         kind: 'group',
         id: crypto.randomUUID(),
-        logicalOp: (p.logicalOp as 'AND' | 'OR') ?? 'AND',
+        logicalOp: (p.logicalOp as LogicalOp) ?? 'AND',
         children: (p.rules as Record<string, unknown>[]).map((r) => ({
           kind: 'rule',
           id: crypto.randomUUID(),
@@ -89,7 +89,7 @@ export function parseConditionJson(json: string | unknown): RuleGroup {
     return {
       kind: 'group',
       id: crypto.randomUUID(),
-      logicalOp: (p.logicalOp as 'AND' | 'OR') ?? 'AND',
+      logicalOp: (p.logicalOp as LogicalOp) ?? 'AND',
       children: children.length ? children : []
     };
   } catch {
@@ -100,13 +100,13 @@ export function parseConditionJson(json: string | unknown): RuleGroup {
 function hydrateGroup(raw: Record<string, unknown>): RuleGroup {
   const children = Array.isArray(raw.children)
     ? (raw.children as Record<string, unknown>[]).map((child) =>
-        child.kind === 'group' ? hydrateGroup(child) : (child as unknown as RuleLeaf)
-      )
+      child.kind === 'group' ? hydrateGroup(child) : (child as unknown as RuleLeaf)
+    )
     : [];
   return {
     kind: 'group',
     id: String(raw.id ?? crypto.randomUUID()),
-    logicalOp: (raw.logicalOp as 'AND' | 'OR') ?? 'AND',
+    logicalOp: (raw.logicalOp as LogicalOp) ?? 'AND',
     children
   };
 }
@@ -133,14 +133,20 @@ export function nodeToSentence(node: RuleNode): string {
       ALL_OPERATORS.find((o) => o.value === node.op)?.label ??
       OPERATOR_LABELS[node.op] ??
       node.op;
+
+    if (node.op === 'between' && String(node.value).includes(',')) {
+      const [start, end] = String(node.value).split(',');
+      return `${node.field} is between "${start}" and "${end}"`;
+    }
+
     return `${node.field} ${opLabel.toLowerCase()} "${node.value}"`;
   }
 
   const parts = node.children.map(nodeToSentence).filter((s) => s !== '…');
   if (!parts.length) return '…';
-  
+
   if (parts.length === 1) return parts[0];
-  
+
   const joined = parts.join(` ${node.logicalOp} `);
   return `(${joined})`;
 }

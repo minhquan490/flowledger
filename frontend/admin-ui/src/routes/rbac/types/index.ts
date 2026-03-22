@@ -39,6 +39,8 @@ export type Permission = {
 
 // ── Rule tree types (used by RowConditionDialog) ───────────────────────────
 
+export type LogicalOp = 'AND' | 'OR'
+
 export interface RuleLeaf {
   kind: 'rule';
   id: string;
@@ -50,7 +52,7 @@ export interface RuleLeaf {
 export interface RuleGroup {
   kind: 'group';
   id: string;
-  logicalOp: 'AND' | 'OR';
+  logicalOp: LogicalOp;
   children: RuleNode[];
 }
 

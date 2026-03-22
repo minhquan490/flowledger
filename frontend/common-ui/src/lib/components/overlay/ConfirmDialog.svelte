@@ -6,12 +6,13 @@
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger
+    DialogTrigger,
   } from "../ui/dialog/index.js";
   import type { Snippet } from "svelte";
   import ButtonBase from "../buttons/ButtonBase.svelte";
   import DangerButton from "../buttons/DangerButton.svelte";
   import SecondaryButton from "../buttons/SecondaryButton.svelte";
+  import { LoaderCircle } from "@lucide/svelte";
 
   export interface Props {
     open?: boolean;
@@ -20,6 +21,7 @@
     confirmText?: string;
     cancelText?: string;
     trigger?: Snippet;
+    loading?: boolean;
     onConfirm?: () => void;
     onCancel?: () => void;
   }
@@ -31,8 +33,9 @@
     confirmText = "Confirm",
     cancelText = "Cancel",
     trigger,
+    loading = false,
     onConfirm,
-    onCancel
+    onCancel,
   }: Props = $props();
 </script>
 
@@ -59,11 +62,18 @@
         {cancelText}
       </SecondaryButton>
       <DangerButton
+        disabled={loading}
         onclick={() => {
           onConfirm?.();
-          open = false;
+          // Check if loading became true in the same tick or a microtask
+          queueMicrotask(() => {
+            if (!loading) open = false;
+          });
         }}
       >
+        {#if loading}
+          <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+        {/if}
         {confirmText}
       </DangerButton>
     </DialogFooter>

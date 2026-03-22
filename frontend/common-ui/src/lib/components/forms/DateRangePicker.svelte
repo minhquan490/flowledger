@@ -28,7 +28,10 @@
     end = $bindable<DateValue | undefined>(undefined),
     class: className,
     startPlaceholder = "Start date",
-    endPlaceholder = "End date"
+    endPlaceholder = "End date",
+    onValueChange,
+    onStartChange,
+    onEndChange
   }: DateRangePickerProps & {
     form?: AnyTanStackFormApi;
     /** Base field name (will use `${name}.start` and `${name}.end` if startName/endName not provided). */
@@ -107,156 +110,177 @@
   let endOpen = $state(false);
 </script>
 
-<div class={cn("grid gap-2 md:grid-cols-2", className)}>
-  {#if form && resolvedStartName}
-    <TanStackFormField
-      {form}
-      name={resolvedStartName ?? ''}
-      label={startLabel}
-      required={required ?? false}
-      showError={showError ?? "touched"}
-      validators={validators?.start}
-    >
-      {#snippet control(fieldApi: import("@tanstack/form-core").AnyFieldApi)}
-        {@const current = readFieldDate(fieldApi)}
+<div
+  class={cn(
+    "flex h-10 w-full items-center rounded-md border border-input bg-background px-1 py-1 text-sm ring-offset-background transition-shadow focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+    className
+  )}
+>
+  <div class="flex items-center px-2 text-muted-foreground">
+    <CalendarIcon class="h-4 w-4" />
+  </div>
 
-        <Popover
-          open={startOpen}
-          onOpenChange={(next: boolean) => {
-            startOpen = next;
-            if (!next) fieldApi.handleBlur();
-          }}
-        >
-          <PopoverTrigger>
-            {#snippet child({ props }: { props: ButtonProps })}
-              <Button
-                variant="outline"
-                class={cn(
-                  "w-full justify-start text-left font-normal",
-                  !current && "text-muted-foreground"
-                )}
-                {...props}
-              >
-                <CalendarIcon />
-                {current ? current.toString() : startPlaceholder}
-              </Button>
-            {/snippet}
-          </PopoverTrigger>
-          <PopoverContent class="w-auto p-0">
-            <Calendar
-              type="single"
-              value={current}
-              onValueChange={(next) => {
-                fieldApi.handleChange(next);
-                fieldApi.handleBlur();
-                start = next;
-                startOpen = false;
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-      {/snippet}
-    </TanStackFormField>
-  {:else}
-    <Popover open={startOpen} onOpenChange={(next: boolean) => (startOpen = next)}>
-      <PopoverTrigger>
-        {#snippet child({ props }: { props: ButtonProps })}
-          <Button
-            variant="outline"
-            class={cn("w-full justify-start text-left font-normal", !start && "text-muted-foreground")}
-            {...props}
+  <div class="flex flex-1 items-center overflow-hidden">
+    <!-- Start Date -->
+    {#if form && resolvedStartName}
+      <TanStackFormField
+        {form}
+        name={resolvedStartName ?? ''}
+        required={required ?? false}
+        showError={showError ?? "touched"}
+        validators={validators?.start}
+      >
+        {#snippet control(fieldApi: import("@tanstack/form-core").AnyFieldApi)}
+          {@const current = readFieldDate(fieldApi)}
+          <Popover
+            open={startOpen}
+            onOpenChange={(next: boolean) => {
+              startOpen = next;
+              if (!next) fieldApi.handleBlur();
+            }}
           >
-            <CalendarIcon />
-            {start ? start.toString() : startPlaceholder}
-          </Button>
+            <PopoverTrigger>
+              {#snippet child({ props }: { props: ButtonProps })}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class={cn(
+                    "h-8 w-full justify-start px-2 font-normal hover:bg-transparent",
+                    !current && "text-muted-foreground"
+                  )}
+                  {...props}
+                >
+                  {current ? current.toString() : startPlaceholder}
+                </Button>
+              {/snippet}
+            </PopoverTrigger>
+            <PopoverContent class="w-auto p-0">
+              <Calendar
+                type="single"
+                value={current}
+                onValueChange={(next) => {
+                  fieldApi.handleChange(next);
+                  fieldApi.handleBlur();
+                  start = next;
+                  startOpen = false;
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         {/snippet}
-      </PopoverTrigger>
-      <PopoverContent class="w-auto p-0">
-        <Calendar
-          type="single"
-          value={start}
-          onValueChange={(next) => {
-            start = next;
-            startOpen = false;
-          }}
-        />
-      </PopoverContent>
-    </Popover>
-  {/if}
+      </TanStackFormField>
+    {:else}
+      <Popover open={startOpen} onOpenChange={(next: boolean) => (startOpen = next)}>
+        <PopoverTrigger>
+          {#snippet child({ props }: { props: ButtonProps })}
+            <Button
+              variant="ghost"
+              size="sm"
+              class={cn(
+                "h-8 w-full justify-start px-2 font-normal hover:bg-transparent",
+                !start && "text-muted-foreground"
+              )}
+              {...props}
+            >
+              {start ? start.toString() : startPlaceholder}
+            </Button>
+          {/snippet}
+        </PopoverTrigger>
+        <PopoverContent class="w-auto p-0">
+          <Calendar
+            type="single"
+            value={start}
+            onValueChange={(next) => {
+              start = next;
+              onStartChange?.(next);
+              onValueChange?.(next, end);
+              startOpen = false;
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+    {/if}
 
-  {#if form && resolvedEndName}
-    <TanStackFormField
-      {form}
-      name={resolvedEndName ?? ''}
-      label={endLabel}
-      required={required ?? false}
-      showError={showError ?? "touched"}
-      validators={validators?.end}
-    >
-      {#snippet control(fieldApi: import("@tanstack/form-core").AnyFieldApi)}
-        {@const current = readFieldDate(fieldApi)}
+    <span class="px-1 text-muted-foreground">──</span>
 
-        <Popover
-          open={endOpen}
-          onOpenChange={(next: boolean) => {
-            endOpen = next;
-            if (!next) fieldApi.handleBlur();
-          }}
-        >
-          <PopoverTrigger>
-            {#snippet child({ props }: { props: ButtonProps })}
-              <Button
-                variant="outline"
-                class={cn(
-                  "w-full justify-start text-left font-normal",
-                  !current && "text-muted-foreground"
-                )}
-                {...props}
-              >
-                <CalendarIcon />
-                {current ? current.toString() : endPlaceholder}
-              </Button>
-            {/snippet}
-          </PopoverTrigger>
-          <PopoverContent class="w-auto p-0">
-            <Calendar
-              type="single"
-              value={current}
-              onValueChange={(next) => {
-                fieldApi.handleChange(next);
-                fieldApi.handleBlur();
-                end = next;
-                endOpen = false;
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-      {/snippet}
-    </TanStackFormField>
-  {:else}
-    <Popover open={endOpen} onOpenChange={(next: boolean) => (endOpen = next)}>
-      <PopoverTrigger>
-        {#snippet child({ props }: { props: ButtonProps })}
-          <Button
-            variant="outline"
-            class={cn("w-full justify-start text-left font-normal", !end && "text-muted-foreground")}
-            {...props}
+    <!-- End Date -->
+    {#if form && resolvedEndName}
+      <TanStackFormField
+        {form}
+        name={resolvedEndName ?? ''}
+        required={required ?? false}
+        showError={showError ?? "touched"}
+        validators={validators?.end}
+      >
+        {#snippet control(fieldApi: import("@tanstack/form-core").AnyFieldApi)}
+          {@const current = readFieldDate(fieldApi)}
+          <Popover
+            open={endOpen}
+            onOpenChange={(next: boolean) => {
+              endOpen = next;
+              if (!next) fieldApi.handleBlur();
+            }}
           >
-            <CalendarIcon />
-            {end ? end.toString() : endPlaceholder}
-          </Button>
+            <PopoverTrigger>
+              {#snippet child({ props }: { props: ButtonProps })}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class={cn(
+                    "h-8 w-full justify-start px-2 font-normal hover:bg-transparent",
+                    !current && "text-muted-foreground"
+                  )}
+                  {...props}
+                >
+                  {current ? current.toString() : endPlaceholder}
+                </Button>
+              {/snippet}
+            </PopoverTrigger>
+            <PopoverContent class="w-auto p-0">
+              <Calendar
+                type="single"
+                value={current}
+                onValueChange={(next) => {
+                  fieldApi.handleChange(next);
+                  fieldApi.handleBlur();
+                  end = next;
+                  endOpen = false;
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         {/snippet}
-      </PopoverTrigger>
-      <PopoverContent class="w-auto p-0">
-        <Calendar
-          type="single"
-          value={end}
-          onValueChange={(next) => {
-            end = next;
-            endOpen = false;
-          }}
-        />
-      </PopoverContent>
-    </Popover>
-  {/if}
+      </TanStackFormField>
+    {:else}
+      <Popover open={endOpen} onOpenChange={(next: boolean) => (endOpen = next)}>
+        <PopoverTrigger>
+          {#snippet child({ props }: { props: ButtonProps })}
+            <Button
+              variant="ghost"
+              size="sm"
+              class={cn(
+                "h-8 w-full justify-start px-2 font-normal hover:bg-transparent",
+                !end && "text-muted-foreground"
+              )}
+              {...props}
+            >
+              {end ? end.toString() : endPlaceholder}
+            </Button>
+          {/snippet}
+        </PopoverTrigger>
+        <PopoverContent class="w-auto p-0">
+          <Calendar
+            type="single"
+            value={end}
+            onValueChange={(next) => {
+              end = next;
+              onEndChange?.(next);
+              onValueChange?.(start, next);
+              endOpen = false;
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+    {/if}
+  </div>
 </div>

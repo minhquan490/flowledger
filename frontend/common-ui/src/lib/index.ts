@@ -45,7 +45,7 @@ export {
 export { type DataTableColumn } from './components/data-display/DataTable.svelte';
 
 // --- FEEDBACK ---
-export { Progress, StatusBadge } from './components/feedback/index.js';
+export { Progress, StatusBadge, Toast } from './components/feedback/index.js';
 
 // --- OVERLAY ---
 export { 

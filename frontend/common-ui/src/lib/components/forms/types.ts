@@ -68,6 +68,9 @@ export interface DateRangePickerProps {
   class?: string;
   startPlaceholder?: string;
   endPlaceholder?: string;
+  onValueChange?: (start: DateValue | undefined, end: DateValue | undefined) => void;
+  onStartChange?: (value: DateValue | undefined) => void;
+  onEndChange?: (value: DateValue | undefined) => void;
 }
 
 export interface ErrorTextProps {

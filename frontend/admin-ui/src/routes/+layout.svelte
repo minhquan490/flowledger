@@ -1,7 +1,7 @@
 <script lang="ts">
   import './layout.css';
   import favicon from '$lib/assets/favicon.svg';
-  import { AppLayout } from '@medisphere/common-ui';
+  import { AppLayout, Toast } from '@medisphere/common-ui';
   import { LayoutDashboard, Users, ShieldAlert, FileText, Settings } from '@lucide/svelte';
   import { page } from '$app/state';
   import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
@@ -103,4 +103,5 @@
   >
     {@render children()}
   </AppLayout>
+  <Toast showDemoButton={false} />
 </QueryClientProvider>

@@ -1,8 +1,13 @@
-import { createQuery } from '@tanstack/svelte-query';
+import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 import type { RowCondition } from '../types';
 
 export const ROW_CONDITIONS_QUERY_KEY = 'rowConditions';
 
+/**
+ * Hook to fetch row conditions.
+ *
+ * @return the query object for row conditions
+ */
 export function useRowConditionsQuery() {
   return createQuery(() => ({
     queryKey: [ROW_CONDITIONS_QUERY_KEY],
@@ -104,6 +109,48 @@ export function useRowConditionsQuery() {
           updatedAt: new Date().toISOString()
         }
       ];
+    }
+  }));
+}
+
+/**
+ * Mutation hook to create or update a row condition.
+ *
+ * @return the mutation object
+ */
+export function useUpsertRowConditionMutation() {
+  const queryClient = useQueryClient();
+
+  return createMutation(() => ({
+    mutationFn: async (data: Partial<RowCondition>) => {
+      // Mock network delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log('Upserting row condition:', data);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ROW_CONDITIONS_QUERY_KEY] });
+    }
+  }));
+}
+
+/**
+ * Mutation hook to delete a row condition.
+ *
+ * @return the mutation object
+ */
+export function useDeleteRowConditionMutation() {
+  const queryClient = useQueryClient();
+
+  return createMutation(() => ({
+    mutationFn: async (id: string) => {
+      // Mock network delay
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      console.log('Deleting row condition:', id);
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ROW_CONDITIONS_QUERY_KEY] });
     }
   }));
 }

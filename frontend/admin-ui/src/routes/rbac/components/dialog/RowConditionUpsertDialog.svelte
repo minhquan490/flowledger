@@ -9,14 +9,34 @@
     GhostButton,
     Switch,
     Input,
-    DatePicker
+    DatePicker,
+    DateRangePicker
   } from '@medisphere/common-ui';
   import { useRolesQuery } from '../../hooks/useRoles';
   import { useResourcesQuery } from '../../hooks/useResources';
-  import type { RowCondition, ResourceField, RuleLeaf, RuleGroup, RuleNode } from '../../types';
-  import { Plus, Trash2, Info, ChevronDown, ChevronUp, FolderPlus } from '@lucide/svelte';
-  import { 
-    parseConditionJson as jsonToGroup, 
+  import { useUpsertRowConditionMutation } from '../../hooks/useRowConditions';
+  import type {
+    RowCondition,
+    ResourceField,
+    RuleLeaf,
+    RuleGroup,
+    RuleNode,
+    LogicalOp
+  } from '../../types';
+  import {
+    Plus,
+    Trash2,
+    Info,
+    ChevronDown,
+    ChevronUp,
+    FolderPlus,
+    LoaderCircle
+  } from '@lucide/svelte';
+  import { toast } from 'svelte-sonner';
+  import { cn } from '$lib/utils';
+  import {
+    ALL_OPERATORS,
+    parseConditionJson as jsonToGroup,
     nodeToSentence
   } from '../../utils/condition';
 
@@ -32,7 +52,7 @@
   const resourcesQuery = useResourcesQuery();
 
   let showAdvanced = $state(false);
-  let isSubmitting = $state(false);
+  const upsertMutation = useUpsertRowConditionMutation();
 
   // ── Form state (plain $state, no TanStack Form) ────────────────────────────
   let formId = $state('');
@@ -54,36 +74,31 @@
     (resourcesQuery.data ?? []).find((r) => r.id === resourceId)?.fields ?? []
   );
   const fieldOptions = $derived(fields.map((f) => ({ value: f.fieldName, label: f.fieldName })));
-  const isFormComplete = $derived(!!(roleId && resourceId && rootGroup.children.length > 0));
+  const isFormComplete = $derived(
+    !!(roleId && resourceId && rootGroup.children.length > 0 && !upsertMutation.isPending)
+  );
+
+  const hasBetween = $derived.by(() => {
+    const check = (node: RuleNode): boolean => {
+      if (node.kind === 'rule') return node.op === 'between';
+      return node.children.some(check);
+    };
+    return check(rootGroup);
+  });
 
   const OPERATORS_BY_TYPE: Record<string, { label: string; value: string }[]> = {
-    text: [
-      { label: 'Equals', value: 'eq' },
-      { label: 'Contains', value: 'like' },
-      { label: 'Not Equals', value: 'ne' },
-      { label: 'Starts With', value: 'sw' }
-    ],
+    text: [ALL_OPERATORS[0], ALL_OPERATORS[1], ALL_OPERATORS[2], ALL_OPERATORS[3]],
     number: [
-      { label: '=', value: 'eq' },
-      { label: '>', value: 'gt' },
-      { label: '<', value: 'lt' },
-      { label: '>=', value: 'gte' },
-      { label: '<=', value: 'lte' },
-      { label: '!=', value: 'ne' }
+      ALL_OPERATORS[4],
+      ALL_OPERATORS[5],
+      ALL_OPERATORS[6],
+      ALL_OPERATORS[7],
+      ALL_OPERATORS[8],
+      ALL_OPERATORS[9]
     ],
-    date: [
-      { label: 'On', value: 'eq' },
-      { label: 'Before', value: 'lt' },
-      { label: 'After', value: 'gt' },
-      { label: 'Between', value: 'between' }
-    ],
-    enum: [
-      { label: 'Is', value: 'eq' },
-      { label: 'Is Not', value: 'ne' },
-      { label: 'In', value: 'in' }
-    ]
+    date: [ALL_OPERATORS[10], ALL_OPERATORS[11], ALL_OPERATORS[12], ALL_OPERATORS[13]],
+    enum: [ALL_OPERATORS[14], ALL_OPERATORS[15], ALL_OPERATORS[16]]
   };
-
 
   // ── Factories ──────────────────────────────────────────────────────────────
 
@@ -91,7 +106,7 @@
     return { kind: 'rule', id: crypto.randomUUID(), field: '', op: 'eq', value: '', ...overrides };
   }
 
-  function makeGroup(overrides?: { logicalOp?: 'AND' | 'OR'; children?: RuleNode[] }): RuleGroup {
+  function makeGroup(overrides?: { logicalOp?: LogicalOp; children?: RuleNode[] }): RuleGroup {
     return {
       kind: 'group',
       id: crypto.randomUUID(),
@@ -276,15 +291,22 @@
   // ── Submit ─────────────────────────────────────────────────────────────────
 
   async function handleSubmit() {
-    if (!roleId || !resourceId) return;
-    isSubmitting = true;
+    if (!roleId || !resourceId || upsertMutation.isPending) return;
+
     try {
       const finalJson = groupToJson(rootGroup);
-      console.log('Submit', { id: formId, roleId, resourceId, conditionJson: finalJson });
+      await upsertMutation.mutateAsync({
+        id: formId || undefined,
+        roleId,
+        resourceId,
+        conditionJson: finalJson
+      });
+      toast.success(initialData ? 'Condition updated successfully' : 'Condition created successfully');
       open = false;
       onClose?.();
-    } finally {
-      isSubmitting = false;
+    } catch (err) {
+      console.error('Failed to upsert row condition:', err);
+      toast.error('Failed to save condition. Please try again.');
     }
   }
 </script>
@@ -301,7 +323,7 @@
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2 rounded-full border bg-muted px-3 py-1.5 shadow-sm">
         <span
-          class="text-[10px] font-bold transition-colors {group.logicalOp === 'AND'
+          class="text-[0.625rem] font-bold transition-colors {group.logicalOp === 'AND'
             ? 'text-primary'
             : 'text-muted-foreground'}">AND</span
         >
@@ -310,7 +332,7 @@
           onCheckedChange={(v: boolean) => handleGroupLogicalOpChange(group.id, v ? 'OR' : 'AND')}
         />
         <span
-          class="text-[10px] font-bold transition-colors {group.logicalOp === 'OR'
+          class="text-[0.625rem] font-bold transition-colors {group.logicalOp === 'OR'
             ? 'text-primary'
             : 'text-muted-foreground'}">OR</span
         >
@@ -366,7 +388,7 @@
               <div class="space-y-1">
                 {#if depth === 0}
                   <label
-                    class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+                    class="text-[0.625rem] font-bold tracking-wider text-muted-foreground uppercase"
                     for={`leaf_field_${leaf.id}`}>Field</label
                   >
                 {/if}
@@ -384,7 +406,7 @@
               <div class="space-y-1">
                 {#if depth === 0}
                   <label
-                    class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+                    class="text-[0.625rem] font-bold tracking-wider text-muted-foreground uppercase"
                     for={`leaf_op_${leaf.id}`}>Operator</label
                   >
                 {/if}
@@ -402,7 +424,7 @@
               <div class="space-y-1">
                 {#if depth === 0}
                   <label
-                    class="text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+                    class="text-[0.625rem] font-bold tracking-wider text-muted-foreground uppercase"
                     for={`leaf_value_${leaf.id}`}>Value</label
                   >
                 {/if}
@@ -416,18 +438,38 @@
                     onValueChange={(val: string) => handleLeafValueChange(leaf.id, val)}
                   />
                 {:else if fieldDef?.fieldType === 'date'}
-                  <DatePicker
-                    disabled={!leaf.field}
-                    value={leaf.value ? parseDate(leaf.value as string) : undefined}
-                    onValueChange={(val: DateValue | undefined) => handleLeafValueChange(leaf.id, val?.toString())}
-                  />
+                  {#if leaf.op === 'between'}
+                    {@const parts = String(leaf.value || '').split(',')}
+                    <div class="max-w-105">
+                      <DateRangePicker
+                        start={parts[0] ? parseDate(parts[0]) : undefined}
+                        end={parts[1] ? parseDate(parts[1]) : undefined}
+                        onValueChange={(
+                          start: DateValue | undefined,
+                          end: DateValue | undefined
+                        ) => {
+                          const s = start?.toString() ?? '';
+                          const e = end?.toString() ?? '';
+                          handleLeafValueChange(leaf.id, `${s},${e}`);
+                        }}
+                      />
+                    </div>
+                  {:else}
+                    <DatePicker
+                      disabled={!leaf.field}
+                      value={leaf.value ? parseDate(leaf.value as string) : undefined}
+                      onValueChange={(val: DateValue | undefined) =>
+                        handleLeafValueChange(leaf.id, val?.toString())}
+                    />
+                  {/if}
                 {:else if fieldDef?.fieldType === 'number'}
                   <Input
                     type="number"
                     placeholder="0"
                     disabled={!leaf.field}
                     value={leaf.value as number}
-                    oninput={(e: Event) => handleLeafValueChange(leaf.id, (e.target as HTMLInputElement).valueAsNumber)}
+                    oninput={(e: Event) =>
+                      handleLeafValueChange(leaf.id, (e.target as HTMLInputElement).valueAsNumber)}
                   />
                 {:else}
                   <Input
@@ -435,7 +477,8 @@
                     placeholder="Value"
                     disabled={!leaf.field}
                     value={leaf.value as string}
-                    oninput={(e: Event) => handleLeafValueChange(leaf.id, (e.target as HTMLInputElement).value)}
+                    oninput={(e: Event) =>
+                      handleLeafValueChange(leaf.id, (e.target as HTMLInputElement).value)}
                   />
                 {/if}
               </div>
@@ -465,7 +508,7 @@
   bind:open
   title={initialData ? 'Edit Row Condition' : 'Create Row Condition'}
   description="Define rules to control which rows this role can access."
-  class="sm:max-w-[750px]"
+  class={cn('transition-all duration-300 sm:max-w-187.5', hasBetween && 'sm:max-w-250')}
 >
   {#if !isReady}
     <!-- Loading state while queries settle -->
@@ -528,7 +571,7 @@
           </div>
           <div class="relative flex flex-col gap-2">
             <span
-              class="flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-primary/60 uppercase"
+              class="flex items-center gap-2 text-[0.625rem] font-bold tracking-[0.2em] text-primary/60 uppercase"
             >
               <Info class="h-3 w-3" />
               Rule Preview
@@ -543,7 +586,7 @@
         <div class="space-y-2 pt-2">
           <GhostButton
             onclick={() => (showAdvanced = !showAdvanced)}
-            class="flex items-center gap-2 px-1 text-[10px] font-bold tracking-widest text-muted-foreground/60 uppercase transition-colors hover:text-primary"
+            class="flex items-center gap-2 px-1 text-[0.625rem] font-bold tracking-widest text-muted-foreground/60 uppercase transition-colors hover:text-primary"
           >
             {#if showAdvanced}
               <ChevronUp class="h-3 w-3" />
@@ -556,7 +599,7 @@
           {#if showAdvanced}
             <div class="rounded-xl border bg-muted/40 p-4 font-mono shadow-inner">
               <pre
-                class="max-h-48 overflow-auto text-[10px] leading-relaxed text-muted-foreground">{groupToJson(
+                class="max-h-48 overflow-auto text-[0.625rem] leading-relaxed text-muted-foreground">{groupToJson(
                   rootGroup,
                   true,
                   true
@@ -577,8 +620,9 @@
         >
           Cancel
         </OutlinedButton>
-        <PrimaryButton type="submit" disabled={isSubmitting || !isFormComplete} class="px-8">
-          {#if isSubmitting}
+        <PrimaryButton type="submit" disabled={!isFormComplete} class="px-8">
+          {#if upsertMutation.isPending}
+            <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
             Saving...
           {:else}
             {initialData ? 'Update Condition' : 'Create Condition'}
