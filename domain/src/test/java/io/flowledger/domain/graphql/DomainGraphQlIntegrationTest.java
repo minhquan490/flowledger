@@ -14,9 +14,7 @@ import io.flowledger.domain.identity.view.UserView;
 import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
 import io.flowledger.platform.query.blaze.BlazeViewLoader;
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +28,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.graphql.ExecutionGraphQlService;
 import org.springframework.graphql.test.tester.ExecutionGraphQlServiceTester;
 import tools.jackson.databind.ObjectMapper;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -210,16 +212,27 @@ class DomainGraphQlIntegrationTest {
     }
 
     /**
+     * Exposes an {@link EntityManagerFactory} mock used by {@code @PersistenceContext} injection.
+     *
+     * @param entityManager the mocked entity manager
+     * @return entity manager factory
+     */
+    @Bean
+    EntityManagerFactory entityManagerFactory(EntityManager entityManager) {
+      EntityManagerFactory entityManagerFactory = org.mockito.Mockito.mock(EntityManagerFactory.class);
+      when(entityManagerFactory.createEntityManager()).thenReturn(entityManager);
+      return entityManagerFactory;
+    }
+
+    /**
      * Exposes the Blaze query builder.
      *
      * @param criteriaBuilderFactory the criteria builder factory
-     * @param entityManager          the entity manager
      * @return the Blaze query builder
      */
     @Bean
     BlazeQueryBuilder blazeQueryBuilder(
-        CriteriaBuilderFactory criteriaBuilderFactory,
-        EntityManager entityManager) {
+        CriteriaBuilderFactory criteriaBuilderFactory) {
       return new BlazeQueryBuilder(criteriaBuilderFactory, List.of());
     }
 

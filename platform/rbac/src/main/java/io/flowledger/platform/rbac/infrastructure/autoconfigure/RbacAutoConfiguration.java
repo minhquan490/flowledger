@@ -1,5 +1,6 @@
 package io.flowledger.platform.rbac.infrastructure.autoconfigure;
 
+import com.blazebit.persistence.view.EntityViewManager;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlModelRegistry;
 import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
 import io.flowledger.platform.rbac.application.NoopRbacSubjectProvider;
@@ -13,10 +14,10 @@ import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPol
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import io.flowledger.platform.rbac.infrastructure.sync.RbacBootstrapRunner;
 import io.flowledger.platform.rbac.infrastructure.sync.RbacResourceSynchronizer;
-import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -52,16 +53,24 @@ public class RbacAutoConfiguration {
    * Creates the RBAC resource synchronizer.
    *
    * @param modelRegistry the GraphQL model registry
-   * @param entityManager the entity manager
+   * @param blazeQueryBuilder the Blaze query builder
+   * @param entityViewManager the entity view manager
    * @return the resource synchronizer
    */
   @Bean
-  @ConditionalOnBean({BlazeGraphQlModelRegistry.class, EntityManager.class})
+  @ConditionalOnBean({BlazeGraphQlModelRegistry.class, BlazeQueryBuilder.class, EntityViewManager.class, EntityManagerFactory.class})
   public RbacResourceSynchronizer rbacResourceSynchronizer(
       BlazeGraphQlModelRegistry modelRegistry,
-      EntityManager entityManager
+      BlazeQueryBuilder blazeQueryBuilder,
+      EntityViewManager entityViewManager,
+      EntityManagerFactory entityManagerFactory
   ) {
-    return new RbacResourceSynchronizer(modelRegistry, entityManager);
+    return new RbacResourceSynchronizer(
+        modelRegistry,
+        blazeQueryBuilder,
+        entityViewManager,
+        entityManagerFactory
+    );
   }
 
   /**

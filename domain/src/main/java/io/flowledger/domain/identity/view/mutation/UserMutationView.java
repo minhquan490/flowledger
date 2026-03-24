@@ -6,6 +6,7 @@ import com.blazebit.persistence.view.UpdatableEntityView;
 import io.flowledger.domain.identity.aggregate.User;
 import io.flowledger.domain.identity.validator.UserMutationViewPayloadValidator;
 import io.flowledger.domain.identity.view.UserView;
+import io.flowledger.domain.identity.aggregate.UserStatus;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPolicy;
 import java.time.Instant;
@@ -34,7 +35,7 @@ public interface UserMutationView extends UserView {
    *
    * @param status the status
    */
-  void setStatus(String status);
+  void setStatus(UserStatus status);
 
   /**
    * Sets the creation timestamp.

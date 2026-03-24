@@ -1,15 +1,24 @@
 package io.flowledger.platform.rbac.infrastructure.sync;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.blazebit.persistence.CriteriaBuilderFactory;
+import com.blazebit.persistence.spi.CriteriaBuilderConfiguration;
+import com.blazebit.persistence.spi.CriteriaBuilderConfigurationProvider;
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.EntityViewManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.flowledger.core.boot.ClasspathScanner;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
+import io.flowledger.platform.graphql.infrastructure.autoconfigure.CoreGraphQlAutoConfiguration;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlModelRegistry;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlViewDefinition;
+import io.flowledger.platform.query.QuerySystemException;
+import io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration;
+import io.flowledger.platform.query.blaze.EntityViewManagerBuilder;
+import io.flowledger.platform.query.mapping.MappingExpressionResolver;
 import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import jakarta.persistence.EntityManager;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,7 +32,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ServiceLoader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,13 +52,15 @@ import static org.assertj.core.api.Assertions.assertThat;
     "spring.jpa.hibernate.ddl-auto=create-drop",
     "spring.jpa.packages-to-scan=io.flowledger.platform.rbac",
     "spring.jpa.properties.hibernate.show_sql=false",
+    "spring.jpa.hibernate.naming.physical-strategy="
+        + "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl",
+    "spring.jpa.properties.hibernate.physical_naming_strategy="
+        + "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl",
     "spring.autoconfigure.exclude="
-        + "io.flowledger.platform.query.autoconfigure.CoreQueryAutoConfiguration,"
         + "io.flowledger.platform.rbac.infrastructure.autoconfigure.RbacAutoConfiguration,"
         + "org.springframework.boot.graphql.autoconfigure.GraphQlAutoConfiguration"
 })
-@DirtiesContext
-@Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class RbacResourceSynchronizerIntegrationTest {
   private static final String MODEL_ACCOUNT = "account";
   private static final String MODEL_TRANSACTION = "transaction";
@@ -182,9 +197,9 @@ class RbacResourceSynchronizerIntegrationTest {
    * Test application bootstrap configuration.
    */
   @SpringBootConfiguration
-  @AutoConfigurationPackage(basePackages = "io.flowledger.platform.rbac")
-  @EnableAutoConfiguration
-  @Import(TestConfig.class)
+  @AutoConfigurationPackage(basePackages = "io.flowledger")
+  @EnableAutoConfiguration(exclude = CoreGraphQlAutoConfiguration.class)
+  @Import({TestConfig.class, CoreQueryAutoConfiguration.class})
   static class TestAppConfiguration {
   }
 
@@ -198,12 +213,24 @@ class RbacResourceSynchronizerIntegrationTest {
      * Creates the synchronizer with a controlled model registry.
      *
      * @param modelRegistry the model registry
-     * @param entityManager the entity manager
+     * @param blazeQueryBuilder the Blaze query builder
+     * @param entityViewManager the entity view manager
+     * @param entityManagerFactory the entity manager factory
      * @return the RBAC synchronizer
      */
     @Bean
-    RbacResourceSynchronizer rbacResourceSynchronizer(BlazeGraphQlModelRegistry modelRegistry, EntityManager entityManager) {
-      return new RbacResourceSynchronizer(modelRegistry, entityManager);
+    RbacResourceSynchronizer rbacResourceSynchronizer(
+        BlazeGraphQlModelRegistry modelRegistry,
+        io.flowledger.platform.query.blaze.BlazeQueryBuilder blazeQueryBuilder,
+        com.blazebit.persistence.view.EntityViewManager entityViewManager,
+        EntityManagerFactory entityManagerFactory
+    ) {
+      return new RbacResourceSynchronizer(
+          modelRegistry,
+          blazeQueryBuilder,
+          entityViewManager,
+          entityManagerFactory
+      );
     }
 
     /**
@@ -233,6 +260,62 @@ class RbacResourceSynchronizerIntegrationTest {
     }
 
     /**
+     * Creates a Blaze {@link CriteriaBuilderFactory} for tests.
+     *
+     * @param entityManagerFactory the entity manager factory
+     * @return the criteria builder factory
+     */
+    @Bean
+    CriteriaBuilderFactory criteriaBuilderFactory(EntityManagerFactory entityManagerFactory) {
+      CriteriaBuilderConfiguration configuration = ServiceLoader.load(CriteriaBuilderConfigurationProvider.class)
+          .findFirst()
+          .orElseThrow(() -> new QuerySystemException(
+              "No CriteriaBuilderConfigurationProvider found on the classpath"))
+          .createConfiguration();
+      return configuration.createCriteriaBuilderFactory(entityManagerFactory);
+    }
+
+    /**
+     * Creates an {@link EntityViewManager} for tests.
+     *
+     * @param criteriaBuilderFactory the criteria builder factory
+     * @param builder the entity view manager builder
+     * @return the entity view manager
+     */
+    @Bean
+    EntityViewManager entityViewManager(
+        CriteriaBuilderFactory criteriaBuilderFactory,
+        EntityViewManagerBuilder builder
+    ) {
+      return builder.build(criteriaBuilderFactory);
+    }
+
+    /**
+     * Creates a classpath scanner required by Blaze view loading.
+     *
+     * @return the classpath scanner
+     */
+    @Bean
+    ClasspathScanner classpathScanner() {
+      return new ClasspathScanner();
+    }
+
+    /**
+     * Creates a no-op mapping resolver for tests.
+     *
+     * @return the mapping expression resolver
+     */
+    @Bean
+    MappingExpressionResolver mappingExpressionResolver() {
+      return new MappingExpressionResolver() {
+        @Override
+        public <T extends java.lang.annotation.Annotation> Optional<String> resolve(T annotation) {
+          return Optional.empty();
+        }
+      };
+    }
+
+    /**
      * Creates a mocked model definition for a model name and view type.
      *
      * @param model the model name
@@ -253,11 +336,11 @@ class RbacResourceSynchronizerIntegrationTest {
   @EntityView(RbacResource.class)
   @GraphQlModel(value = MODEL_ACCOUNT, accessPolicy = RbacGraphQlAccessPolicy.class)
   interface AccountSyncView {
-    String getId();
+    java.util.UUID getId();
 
     String getName();
 
-    boolean isActive();
+    String getDescription();
 
     void setName(String value);
   }
@@ -268,11 +351,11 @@ class RbacResourceSynchronizerIntegrationTest {
   @EntityView(RbacResource.class)
   @GraphQlModel(value = MODEL_TRANSACTION, accessPolicy = RbacGraphQlAccessPolicy.class)
   interface TransactionSyncView {
-    String getAmount();
+    String getDescription();
 
-    boolean isPosted();
+    String getName();
 
-    void setAmount(String amount);
+    void setDescription(String description);
   }
 
   /**
@@ -284,10 +367,6 @@ class RbacResourceSynchronizerIntegrationTest {
     String getName();
 
     void setName(String value);
-
-    boolean isName();
-
-    String helperMethod();
   }
 
 }

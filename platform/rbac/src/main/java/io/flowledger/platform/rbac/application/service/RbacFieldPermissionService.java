@@ -2,12 +2,14 @@ package io.flowledger.platform.rbac.application.service;
 
 import io.flowledger.core.web.HttpStatusCodes;
 import io.flowledger.platform.graphql.application.GraphQlApiException;
+import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
+import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleFieldActionPermission;
 import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
+import io.flowledger.platform.rbac.domain.resource.entity.RbacResourceField;
 import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacFieldAction;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +25,7 @@ import static io.flowledger.platform.rbac.application.service.RbacPermissionServ
 @RequiredArgsConstructor
 public class RbacFieldPermissionService {
   private final RbacRoleResolver roleResolver;
+  private final BlazeQueryBuilder blazeQueryBuilder;
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -73,7 +76,7 @@ public class RbacFieldPermissionService {
    * @return the resource entity
    */
   private RbacResource findResource(String resource) {
-    return getRbacResourceEntity(resource, entityManager);
+    return getRbacResourceEntity(resource, blazeQueryBuilder);
   }
 
   /**
@@ -90,21 +93,18 @@ public class RbacFieldPermissionService {
       return List.of();
     }
     List<UUID> roleIds = roles.stream().map(RbacRole::getId).toList();
-    TypedQuery<String> query = entityManager.createQuery(
-        """
-            select distinct rf.fieldName
-            from RbacRoleFieldActionPermission p
-            join RbacResourceField rf on p.resourceFieldId = rf.id
-            where p.roleId in :roleIds
-              and rf.resource.id = :resourceId
-              and p.action = :action
-              and p.allowed = true
-            """,
-        String.class
-    );
-    query.setParameter("roleIds", roleIds);
-    query.setParameter("resourceId", resourceEntity.getId());
-    query.setParameter("action", action);
-    return query.getResultList();
+    return blazeQueryBuilder.getCriteriaBuilderFactory()
+        .create(entityManager, String.class)
+        .from(RbacRoleFieldActionPermission.class, "p")
+        .innerJoinOn(RbacResourceField.class, "rf")
+        .on("p.resourceFieldId").eqExpression("rf.id")
+        .end()
+        .select("rf.fieldName")
+        .distinct()
+        .where("p.roleId").in(roleIds)
+        .where("rf.resource.id").eq(resourceEntity.getId())
+        .where("p.action").eq(action)
+        .where("p.allowed").eq(true)
+        .getResultList();
   }
 }

@@ -6,10 +6,12 @@ import com.blazebit.persistence.view.EntityViews;
 import com.blazebit.persistence.view.spi.EntityViewConfiguration;
 import io.flowledger.platform.query.QuerySystemException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,6 +27,7 @@ public class EntityViewManagerBuilder {
   private final BlazeViewMappingApplier mappingApplier;
   private final BlazeViewLoader blazeViewLoader;
   private final ApplicationContext applicationContext;
+  private final ObjectProvider<PlatformTransactionManager> transactionManagerProvider;
 
   /**
    * Creates an {@link EntityViewManager} configured with discovered entity views.
@@ -43,6 +46,7 @@ public class EntityViewManagerBuilder {
     }
 
     EntityViewConfiguration config = EntityViews.createDefaultConfiguration();
+    configureTransactionSupport(config);
     List<String> packagesToScan = AutoConfigurationPackages.get(applicationContext);
 
     Collection<Class<?>> views = blazeViewLoader.loadViews(packagesToScan.toArray(new String[0]));
@@ -52,5 +56,18 @@ public class EntityViewManagerBuilder {
     }
 
     return config.createEntityViewManager(cbf);
+  }
+
+  /**
+   * Configures Blaze entity-view transaction support via Spring transaction manager when available.
+   *
+   * @param config the entity-view configuration
+   */
+  private void configureTransactionSupport(EntityViewConfiguration config) {
+    PlatformTransactionManager transactionManager = transactionManagerProvider.getIfAvailable();
+    if (transactionManager == null) {
+      return;
+    }
+    config.setTransactionSupport(new BlazeTransactionSupportAdapter(transactionManager));
   }
 }

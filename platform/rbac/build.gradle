@@ -16,9 +16,6 @@ configurations {
   compileOnly {
     extendsFrom annotationProcessor
   }
-  testRuntimeClasspath {
-    exclude group: 'com.blazebit', module: 'blaze-persistence-integration-hibernate-6.2'
-  }
 }
 
 dependencies {
@@ -27,6 +24,7 @@ dependencies {
   api project(':platform:query')
   api libs.spring.boot.starter
   implementation libs.spring.tx
+  implementation libs.spring.orm
   implementation libs.jackson.core
   implementation libs.jackson.databind
 
@@ -36,6 +34,7 @@ dependencies {
   testImplementation libs.spring.boot.starter.test
   testImplementation libs.spring.boot.starter.data.jpa
   testRuntimeOnly libs.h2
+  testRuntimeOnly libs.blaze.integration.hibernate
 
   testRuntimeOnly libs.junit.platform.launcher
 }

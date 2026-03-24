@@ -23,9 +23,30 @@ import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQLMutationPol
 public interface RbacResourceMutationView extends RbacResourceView {
 
   /**
+   * Sets the resource name.
+   *
+   * @param name the resource name
+   */
+  void setName(String name);
+
+  /**
    * Sets the resource description.
    *
    * @param description the resource description
    */
   void setDescription(String description);
+
+  /**
+   * Sets the creation timestamp.
+   *
+   * @param createdAt the creation timestamp
+   */
+  void setCreatedAt(java.time.Instant createdAt);
+
+  /**
+   * Sets the update timestamp.
+   *
+   * @param updatedAt the update timestamp
+   */
+  void setUpdatedAt(java.time.Instant updatedAt);
 }

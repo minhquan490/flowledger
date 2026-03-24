@@ -1,10 +1,11 @@
 package io.flowledger.platform.rbac.application.service;
 
 import io.flowledger.platform.rbac.application.RbacSubjectProvider;
+import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
 import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
+import io.flowledger.platform.rbac.domain.role.entity.RbacUserRole;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,15 +18,15 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class RbacRoleResolver {
-  private static final String DEFAULT_ROLE_QUERY =
-      "select r from RbacRole r where r.defaultRole = true";
-
-  private static final String USER_ROLE_QUERY =
-      "select r from RbacRole r "
-          + "join RbacUserRole ur on ur.roleId = r.id "
-          + "where ur.userId = :userId";
+  private static final String ROLE_ALIAS = "role";
+  private static final String USER_ROLE_ALIAS = "userRole";
+  private static final String DEFAULT_ROLE_FIELD = "defaultRole";
+  private static final String ROLE_ID_FIELD = "id";
+  private static final String USER_ROLE_ID_FIELD = "roleId";
+  private static final String USER_ROLE_USER_ID_FIELD = "userId";
 
   private final RbacSubjectProvider subjectProvider;
+  private final BlazeQueryBuilder blazeQueryBuilder;
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -53,9 +54,14 @@ public class RbacRoleResolver {
    * @return the assigned roles
    */
   private List<RbacRole> findRolesByUser(UUID userId) {
-    TypedQuery<RbacRole> query = entityManager.createQuery(USER_ROLE_QUERY, RbacRole.class);
-    query.setParameter("userId", userId);
-    return query.getResultList();
+    return blazeQueryBuilder.getCriteriaBuilderFactory()
+        .create(entityManager, RbacRole.class)
+        .from(RbacRole.class, ROLE_ALIAS)
+        .innerJoinOn(RbacUserRole.class, USER_ROLE_ALIAS)
+        .on(ROLE_ALIAS + "." + ROLE_ID_FIELD).eqExpression(USER_ROLE_ALIAS + "." + USER_ROLE_ID_FIELD)
+        .end()
+        .where(USER_ROLE_ALIAS + "." + USER_ROLE_USER_ID_FIELD).eq(userId)
+        .getResultList();
   }
 
   /**
@@ -64,6 +70,9 @@ public class RbacRoleResolver {
    * @return the default roles
    */
   private List<RbacRole> findDefaultRoles() {
-    return entityManager.createQuery(DEFAULT_ROLE_QUERY, RbacRole.class).getResultList();
+    return blazeQueryBuilder.forEntity(RbacRole.class)
+        .where(DEFAULT_ROLE_FIELD)
+        .eq(true)
+        .getResultList();
   }
 }

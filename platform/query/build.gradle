@@ -26,6 +26,7 @@ dependencies {
   api libs.blaze.entity.view.api
   api libs.javassist
   api libs.jakarta.persistence
+  api libs.spring.tx
 
   compileOnly libs.lombok
   annotationProcessor libs.lombok

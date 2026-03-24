@@ -3,11 +3,12 @@ package io.flowledger.platform.rbac.application.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.flowledger.platform.graphql.application.GraphQlInternalException;
+import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
+import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleRowCondition;
 import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
 import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +28,7 @@ public class RbacRowFilterService {
 
   private final RbacRoleResolver roleResolver;
   private final ObjectMapper objectMapper;
+  private final BlazeQueryBuilder blazeQueryBuilder;
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -47,14 +49,13 @@ public class RbacRowFilterService {
       return Map.of();
     }
     List<UUID> roleIds = roles.stream().map(RbacRole::getId).toList();
-    TypedQuery<String> query = entityManager.createQuery(
-        "select r.conditionJson from RbacRoleRowCondition r "
-            + "where r.roleId in :roleIds and r.resourceId = :resourceId",
-        String.class
-    );
-    query.setParameter("roleIds", roleIds);
-    query.setParameter("resourceId", resourceEntity.getId());
-    List<String> conditions = query.getResultList();
+    List<String> conditions = blazeQueryBuilder.getCriteriaBuilderFactory()
+        .create(entityManager, String.class)
+        .from(RbacRoleRowCondition.class, "r")
+        .select("r.conditionJson")
+        .where("r.roleId").in(roleIds)
+        .where("r.resourceId").eq(resourceEntity.getId())
+        .getResultList();
     Map<String, Object> merged = new HashMap<>();
     for (String condition : conditions) {
       Map<String, Object> parsed = parseCondition(condition);
@@ -90,12 +91,11 @@ public class RbacRowFilterService {
    * @return the resource entity or null when not found
    */
   private RbacResource findResource(String resource) {
-    TypedQuery<RbacResource> query = entityManager.createQuery(
-        "select r from RbacResource r where r.name = :name",
-        RbacResource.class
-    );
-    query.setParameter("name", resource);
-    List<RbacResource> results = query.getResultList();
+    List<RbacResource> results = blazeQueryBuilder.forEntity(RbacResource.class)
+        .where("name")
+        .eq(resource)
+        .setMaxResults(1)
+        .getResultList();
     if (results.isEmpty()) {
       return null;
     }

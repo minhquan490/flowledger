@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -35,7 +37,8 @@ public class User {
   private String email;
 
   @Column(name = "status", nullable = false, length = 50)
-  private String status;
+  @Enumerated(EnumType.STRING)
+  private UserStatus status;
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;

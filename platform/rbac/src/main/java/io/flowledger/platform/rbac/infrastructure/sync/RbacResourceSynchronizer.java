@@ -1,18 +1,34 @@
 package io.flowledger.platform.rbac.infrastructure.sync;
 
+import com.blazebit.persistence.CriteriaBuilder;
+import com.blazebit.persistence.view.EntityViewManager;
+import com.blazebit.persistence.view.EntityViewSetting;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlModelRegistry;
 import io.flowledger.platform.graphql.infrastructure.blaze.BlazeGraphQlViewDefinition;
+import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
 import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleFieldActionPermission;
 import io.flowledger.platform.rbac.domain.permission.entity.RbacRoleResourcePermission;
+import io.flowledger.platform.rbac.domain.permission.view.RbacRoleFieldActionPermissionView;
+import io.flowledger.platform.rbac.domain.permission.view.RbacRoleResourcePermissionView;
+import io.flowledger.platform.rbac.domain.permission.view.mutation.RbacRoleFieldActionPermissionMutationView;
+import io.flowledger.platform.rbac.domain.permission.view.mutation.RbacRoleResourcePermissionMutationView;
 import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
 import io.flowledger.platform.rbac.domain.resource.entity.RbacResourceField;
+import io.flowledger.platform.rbac.domain.resource.view.RbacResourceFieldView;
+import io.flowledger.platform.rbac.domain.resource.view.RbacResourceReferenceView;
+import io.flowledger.platform.rbac.domain.resource.view.RbacResourceView;
+import io.flowledger.platform.rbac.domain.resource.view.mutation.RbacResourceFieldMutationView;
+import io.flowledger.platform.rbac.domain.resource.view.mutation.RbacResourceMutationView;
 import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacFieldAction;
+import io.flowledger.platform.rbac.domain.role.view.RbacRoleView;
+import io.flowledger.platform.rbac.domain.role.view.mutation.RbacRoleMutationView;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
@@ -22,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,18 +59,31 @@ public class RbacResourceSynchronizer {
   private static final int BATCH_SIZE = 500;
 
   private final BlazeGraphQlModelRegistry modelRegistry;
-  private final EntityManager entityManager;
+  private final BlazeQueryBuilder blazeQueryBuilder;
+  private final EntityViewManager entityViewManager;
+  private final EntityManagerFactory entityManagerFactory;
 
   /**
    * Synchronizes resources, default roles, and administrator permissions.
+   *
+   * <p>Runs within a Spring-managed transaction via {@link Transactional}. Mutation-view operations
+   * resolve the transaction-bound entity manager from {@link EntityManagerFactoryUtils} to ensure
+   * Blaze update operations execute with an active transaction.
    */
   @Transactional
   public void synchronize() {
+    synchronizeWithinTransaction();
+  }
+
+  /**
+   * Executes synchronization work inside the active Spring transaction.
+   */
+  private void synchronizeWithinTransaction() {
     Map<String, Class<?>> modelViews = collectModelViews();
     syncResources(modelViews.keySet().stream().toList());
     syncResourceFields(modelViews);
     ensureDefaultRole();
-    RbacRole adminRole = ensureAdminRole();
+    RbacRoleView adminRole = ensureAdminRole();
     ensureAdminRolePermissions(adminRole);
     ensureAdminFieldPermissions(adminRole);
   }
@@ -71,7 +101,7 @@ public class RbacResourceSynchronizer {
       return;
     }
 
-    Map<String, RbacResource> existingByName = loadExistingResources(modelNames);
+    Map<String, RbacResourceView> existingByName = loadExistingResources(modelNames);
     Instant now = Instant.now();
 
     for (String model : modelNames) {
@@ -81,7 +111,6 @@ public class RbacResourceSynchronizer {
         persistNewResource(model, now);
       }
     }
-    entityManager.flush();
   }
 
   /**
@@ -103,66 +132,73 @@ public class RbacResourceSynchronizer {
   }
 
   /**
-   * Loads existing {@link RbacResource} records for the given names
-   * using batched {@code IN} queries to avoid database clause size limits.
+   * Loads existing resource views for the given names using batched {@code IN} queries.
    *
    * @param modelNames the full list of model names to look up
-   * @return a map of resource name to entity for all found records
+   * @return a map of resource name to view for all found records
    */
-  private Map<String, RbacResource> loadExistingResources(List<String> modelNames) {
-    List<RbacResource> results = new ArrayList<>();
+  private Map<String, RbacResourceView> loadExistingResources(List<String> modelNames) {
+    List<RbacResourceView> results = new ArrayList<>();
     List<List<String>> batches = partition(modelNames);
+    EntityViewSetting<RbacResourceView, CriteriaBuilder<RbacResourceView>> setting =
+        EntityViewSetting.create(RbacResourceView.class);
 
     for (List<String> batch : batches) {
-      TypedQuery<RbacResource> query = entityManager.createQuery(
-          "select r from RbacResource r where r.name in :names",
-          RbacResource.class
-      );
-      query.setParameter("names", batch);
-      results.addAll(query.getResultList());
+      CriteriaBuilder<RbacResource> criteriaBuilder = blazeQueryBuilder.forEntity(RbacResource.class);
+      criteriaBuilder.where("name").in(batch);
+      results.addAll(entityViewManager.applySetting(setting, criteriaBuilder).getResultList());
     }
 
     return results.stream()
-        .collect(Collectors.toMap(RbacResource::getName, Function.identity()));
+        .collect(Collectors.toMap(RbacResourceView::getName, Function.identity()));
   }
 
   /**
-   * Updates the {@code updatedAt} timestamp on an existing resource.
+   * Updates the {@code updatedAt} timestamp on an existing resource via mutation view.
    *
-   * @param existing the existing resource entity
+   * @param existing the existing resource view
    * @param now the current timestamp
    */
-  private void updateResourceTimestamp(RbacResource existing, Instant now) {
-    if (existing == null) {
+  private void updateResourceTimestamp(RbacResourceView existing, Instant now) {
+    if (existing == null || existing.getId() == null) {
       return;
     }
-    existing.setUpdatedAt(now);
-    entityManager.merge(existing);
+    RbacResourceMutationView resource =
+        entityViewManager.find(managedEntityManager(), RbacResourceMutationView.class, existing.getId());
+    if (resource == null) {
+      return;
+    }
+    resource.setUpdatedAt(now);
+    entityViewManager.save(managedEntityManager(), resource);
   }
 
   /**
-   * Persists a new resource entity.
+   * Persists a new resource using a mutation view.
    *
    * @param model the resource name
    * @param now the current timestamp
    */
   private void persistNewResource(String model, Instant now) {
-    RbacResource resource = new RbacResource();
+    RbacResourceMutationView resource = entityViewManager.create(RbacResourceMutationView.class);
     resource.setName(model);
     resource.setCreatedAt(now);
     resource.setUpdatedAt(now);
-    entityManager.persist(resource);
+    entityViewManager.save(managedEntityManager(), resource);
   }
 
   /**
    * Ensures a default role exists for users without explicit roles.
    */
   private void ensureDefaultRole() {
-    TypedQuery<RbacRole> query = entityManager.createQuery(
-        "select r from RbacRole r where r.defaultRole = true",
-        RbacRole.class
-    );
-    if (!query.getResultList().isEmpty()) {
+    CriteriaBuilder<RbacRole> criteriaBuilder = blazeQueryBuilder.forEntity(RbacRole.class);
+    criteriaBuilder.where("defaultRole").eq(true);
+    EntityViewSetting<RbacRoleView, CriteriaBuilder<RbacRoleView>> setting = EntityViewSetting.create(RbacRoleView.class);
+    long defaultRoleCount = entityViewManager
+        .applySetting(setting, criteriaBuilder)
+        .getQueryRootCountQuery()
+        .getSingleResult();
+    boolean hasDefaultRole = defaultRoleCount > 0;
+    if (hasDefaultRole) {
       return;
     }
     persistDefaultRole();
@@ -173,27 +209,25 @@ public class RbacResourceSynchronizer {
    */
   private void persistDefaultRole() {
     Instant now = Instant.now();
-    RbacRole role = new RbacRole();
+    RbacRoleMutationView role = entityViewManager.create(RbacRoleMutationView.class);
     role.setCode(DEFAULT_ROLE_CODE);
     role.setName(DEFAULT_ROLE_NAME);
     role.setDefaultRole(true);
     role.setCreatedAt(now);
     role.setUpdatedAt(now);
-    entityManager.persist(role);
+    entityViewManager.save(managedEntityManager(), role);
   }
 
   /**
    * Ensures the administrator role exists.
    *
-   * @return the administrator role entity
+   * @return the administrator role view
    */
-  private RbacRole ensureAdminRole() {
-    TypedQuery<RbacRole> query = entityManager.createQuery(
-        "select r from RbacRole r where r.code = :code",
-        RbacRole.class
-    );
-    query.setParameter("code", DEFAULT_ADMIN_ROLE_CODE);
-    List<RbacRole> results = query.getResultList();
+  private RbacRoleView ensureAdminRole() {
+    CriteriaBuilder<RbacRole> criteriaBuilder = blazeQueryBuilder.forEntity(RbacRole.class);
+    criteriaBuilder.where("code").eq(DEFAULT_ADMIN_ROLE_CODE).setMaxResults(1);
+    EntityViewSetting<RbacRoleView, CriteriaBuilder<RbacRoleView>> setting = EntityViewSetting.create(RbacRoleView.class);
+    List<RbacRoleView> results = entityViewManager.applySetting(setting, criteriaBuilder).getResultList();
     if (!results.isEmpty()) {
       return results.getFirst();
     }
@@ -201,44 +235,47 @@ public class RbacResourceSynchronizer {
   }
 
   /**
-   * Persists the administrator role.
+   * Persists the administrator role using a mutation view.
    *
-   * @return the newly persisted administrator role
+   * @return the newly persisted administrator role view
    */
-  private RbacRole persistAdminRole() {
+  private RbacRoleView persistAdminRole() {
     Instant now = Instant.now();
-    RbacRole role = new RbacRole();
+    RbacRoleMutationView role = entityViewManager.create(RbacRoleMutationView.class);
     role.setCode(DEFAULT_ADMIN_ROLE_CODE);
     role.setName(DEFAULT_ADMIN_ROLE_NAME);
     role.setDefaultRole(false);
     role.setCreatedAt(now);
     role.setUpdatedAt(now);
-    entityManager.persist(role);
-    flushAndRefresh(role);
-    return role;
+    entityViewManager.save(managedEntityManager(), role);
+    RbacRoleView createdRole = entityViewManager.find(managedEntityManager(), RbacRoleView.class, role.getId());
+    if (createdRole == null) {
+      throw new IllegalStateException("Admin role creation failed.");
+    }
+    return createdRole;
   }
 
   /**
    * Ensures the administrator role has full access to all registered resources.
    *
-   * @param adminRole the administrator role
+   * @param adminRole the administrator role view
    */
-  private void ensureAdminRolePermissions(RbacRole adminRole) {
+  private void ensureAdminRolePermissions(RbacRoleView adminRole) {
     if (adminRole == null || adminRole.getId() == null) {
       return;
     }
-    List<RbacResource> resources = entityManager.createQuery(
-        "select r from RbacResource r",
-        RbacResource.class
-    ).getResultList();
+    CriteriaBuilder<RbacResource> criteriaBuilder = blazeQueryBuilder.forEntity(RbacResource.class);
+    EntityViewSetting<RbacResourceView, CriteriaBuilder<RbacResourceView>> setting =
+        EntityViewSetting.create(RbacResourceView.class);
+    List<RbacResourceView> resources = entityViewManager.applySetting(setting, criteriaBuilder).getResultList();
     if (resources.isEmpty()) {
       return;
     }
-    List<RbacRoleResourcePermission> existing = loadRoleResourcePermissions(adminRole.getId(), resources);
-    Map<String, RbacRoleResourcePermission> existingByKey = existing.stream()
+    List<RbacRoleResourcePermissionView> existing = loadRoleResourcePermissions(adminRole.getId(), resources);
+    Map<String, RbacRoleResourcePermissionView> existingByKey = existing.stream()
         .collect(Collectors.toMap(this::permissionKey, Function.identity()));
     Instant now = Instant.now();
-    for (RbacResource resource : resources) {
+    for (RbacResourceView resource : resources) {
       for (RbacAction action : RbacAction.values()) {
         String key = permissionKey(adminRole.getId(), resource.getId(), action);
         if (!existingByKey.containsKey(key)) {
@@ -253,24 +290,25 @@ public class RbacResourceSynchronizer {
   /**
    * Ensures the administrator role has full action permissions for every resource field.
    *
-   * @param adminRole the administrator role
+   * @param adminRole the administrator role view
    */
-  private void ensureAdminFieldPermissions(RbacRole adminRole) {
+  private void ensureAdminFieldPermissions(RbacRoleView adminRole) {
     if (adminRole == null || adminRole.getId() == null) {
       return;
     }
-    List<RbacResourceField> resourceFields = entityManager.createQuery(
-        "select rf from RbacResourceField rf",
-        RbacResourceField.class
-    ).getResultList();
+    CriteriaBuilder<RbacResourceField> criteriaBuilder =
+        blazeQueryBuilder.forEntity(RbacResourceField.class);
+    EntityViewSetting<RbacResourceFieldView, CriteriaBuilder<RbacResourceFieldView>> setting =
+        EntityViewSetting.create(RbacResourceFieldView.class);
+    List<RbacResourceFieldView> resourceFields = entityViewManager.applySetting(setting, criteriaBuilder).getResultList();
     if (resourceFields.isEmpty()) {
       return;
     }
-    List<RbacRoleFieldActionPermission> existing = loadRoleFieldActionPermissions(adminRole.getId(), resourceFields);
-    Map<String, RbacRoleFieldActionPermission> existingByKey = existing.stream()
+    List<RbacRoleFieldActionPermissionView> existing = loadRoleFieldActionPermissions(adminRole.getId(), resourceFields);
+    Map<String, RbacRoleFieldActionPermissionView> existingByKey = existing.stream()
         .collect(Collectors.toMap(this::fieldPermissionKey, Function.identity()));
     Instant now = Instant.now();
-    for (RbacResourceField resourceField : resourceFields) {
+    for (RbacResourceFieldView resourceField : resourceFields) {
       for (RbacFieldAction action : RbacFieldAction.values()) {
         String key = fieldPermissionKey(adminRole.getId(), resourceField.getId(), action);
         if (!existingByKey.containsKey(key)) {
@@ -291,26 +329,26 @@ public class RbacResourceSynchronizer {
     if (modelViews.isEmpty()) {
       return;
     }
-    List<RbacResource> resources = loadExistingResources(modelViews.keySet().stream().toList()).values().stream().toList();
-    Map<String, RbacResource> resourcesByName = resources.stream()
-        .collect(Collectors.toMap(RbacResource::getName, Function.identity()));
-    List<RbacResourceField> existingFields = entityManager.createQuery(
-        "select rf from RbacResourceField rf",
-        RbacResourceField.class
-    ).getResultList();
-    Map<String, RbacResourceField> existingByKey = existingFields.stream()
+    List<RbacResourceView> resources = loadExistingResources(modelViews.keySet().stream().toList()).values().stream().toList();
+    Map<String, RbacResourceView> resourcesByName = resources.stream()
+        .collect(Collectors.toMap(RbacResourceView::getName, Function.identity()));
+    CriteriaBuilder<RbacResourceField> criteriaBuilder = blazeQueryBuilder.forEntity(RbacResourceField.class);
+    EntityViewSetting<RbacResourceFieldView, CriteriaBuilder<RbacResourceFieldView>> setting =
+        EntityViewSetting.create(RbacResourceFieldView.class);
+    List<RbacResourceFieldView> existingFields = entityViewManager.applySetting(setting, criteriaBuilder).getResultList();
+    Map<String, RbacResourceFieldView> existingByKey = existingFields.stream()
         .collect(Collectors.toMap(this::resourceFieldKey, Function.identity(), (first, _) -> first));
-    Map<String, RbacResourceField> expectedByKey = new LinkedHashMap<>();
+    Set<String> expectedKeys = new java.util.HashSet<>();
     Instant now = Instant.now();
     for (Map.Entry<String, Class<?>> modelView : modelViews.entrySet()) {
       String model = modelView.getKey();
-      RbacResource resource = resourcesByName.get(model);
+      RbacResourceView resource = resourcesByName.get(model);
       if (resource == null || resource.getId() == null) {
         continue;
       }
       for (FieldMethod fieldMethod : extractFieldMethods(modelView.getValue())) {
         String key = resourceFieldKey(resource.getId(), fieldMethod.fieldName());
-        expectedByKey.putIfAbsent(key, placeholderResourceField(resource.getId(), fieldMethod.fieldName()));
+        expectedKeys.add(key);
         if (!existingByKey.containsKey(key)) {
           persistResourceField(resource.getId(), fieldMethod.fieldName(), fieldMethod.sourceMethodName(), now);
           existingByKey.put(key, placeholderResourceField(resource.getId(), fieldMethod.fieldName()));
@@ -319,27 +357,26 @@ public class RbacResourceSynchronizer {
         }
       }
     }
-    deleteStaleResourceFields(existingFields, expectedByKey);
-    entityManager.flush();
+    deleteStaleResourceFields(existingFields, expectedKeys);
   }
 
   /**
    * Deletes resource fields that are not present in the current model views.
    *
-   * @param existingFields the current resource field entities
-   * @param expectedByKey the expected resource fields keyed by resource and field name
+   * @param existingFields the current resource field views
+   * @param expectedKeys the expected resource field keys
    */
   private void deleteStaleResourceFields(
-      List<RbacResourceField> existingFields,
-      Map<String, RbacResourceField> expectedByKey
+      List<RbacResourceFieldView> existingFields,
+      Set<String> expectedKeys
   ) {
-    for (RbacResourceField resourceField : existingFields) {
+    for (RbacResourceFieldView resourceField : existingFields) {
       if (resourceField == null) {
         continue;
       }
       String key = resourceFieldKey(resourceField);
-      if (!expectedByKey.containsKey(key)) {
-        entityManager.remove(resourceField);
+      if (!expectedKeys.contains(key)) {
+        removeResourceField(resourceField);
       }
     }
   }
@@ -349,36 +386,33 @@ public class RbacResourceSynchronizer {
    *
    * @param roleId the role identifier
    * @param resources the resources to check
-   * @return the existing permissions for the role
+   * @return the existing permission views for the role
    */
-  private List<RbacRoleResourcePermission> loadRoleResourcePermissions(
+  private List<RbacRoleResourcePermissionView> loadRoleResourcePermissions(
       UUID roleId,
-      List<RbacResource> resources
+      List<RbacResourceView> resources
   ) {
     List<UUID> resourceIds = resources.stream()
-        .map(RbacResource::getId)
+        .map(RbacResourceView::getId)
         .filter(Objects::nonNull)
         .toList();
     if (resourceIds.isEmpty()) {
       return List.of();
     }
-    TypedQuery<RbacRoleResourcePermission> query = entityManager.createQuery(
-        "select p from RbacRoleResourcePermission p "
-            + "where p.roleId = :roleId and p.resourceId in :resourceIds",
-        RbacRoleResourcePermission.class
-    );
-    query.setParameter("roleId", roleId);
-    query.setParameter("resourceIds", resourceIds);
-    return query.getResultList();
+    CriteriaBuilder<RbacRoleResourcePermission> criteriaBuilder = blazeQueryBuilder.forEntity(RbacRoleResourcePermission.class);
+    criteriaBuilder.where("roleId").eq(roleId).where("resourceId").in(resourceIds);
+    EntityViewSetting<RbacRoleResourcePermissionView, CriteriaBuilder<RbacRoleResourcePermissionView>> setting =
+        EntityViewSetting.create(RbacRoleResourcePermissionView.class);
+    return entityViewManager.applySetting(setting, criteriaBuilder).getResultList();
   }
 
   /**
    * Creates a unique key for a permission entry.
    *
-   * @param permission the permission entity
+   * @param permission the permission view
    * @return the permission key
    */
-  private String permissionKey(RbacRoleResourcePermission permission) {
+  private String permissionKey(RbacRoleResourcePermissionView permission) {
     return permissionKey(permission.getRoleId(), permission.getResourceId(), permission.getAction());
   }
 
@@ -399,36 +433,33 @@ public class RbacResourceSynchronizer {
    *
    * @param roleId the role identifier
    * @param resourceFields the resource fields to check
-   * @return the existing role-field-action permissions
+   * @return the existing role-field-action permission views
    */
-  private List<RbacRoleFieldActionPermission> loadRoleFieldActionPermissions(
+  private List<RbacRoleFieldActionPermissionView> loadRoleFieldActionPermissions(
       UUID roleId,
-      List<RbacResourceField> resourceFields
+      List<RbacResourceFieldView> resourceFields
   ) {
     List<UUID> resourceFieldIds = resourceFields.stream()
-        .map(RbacResourceField::getId)
+        .map(RbacResourceFieldView::getId)
         .filter(Objects::nonNull)
         .toList();
     if (resourceFieldIds.isEmpty()) {
       return List.of();
     }
-    TypedQuery<RbacRoleFieldActionPermission> query = entityManager.createQuery(
-        "select p from RbacRoleFieldActionPermission p "
-            + "where p.roleId = :roleId and p.resourceFieldId in :resourceFieldIds",
-        RbacRoleFieldActionPermission.class
-    );
-    query.setParameter("roleId", roleId);
-    query.setParameter("resourceFieldIds", resourceFieldIds);
-    return query.getResultList();
+    CriteriaBuilder<RbacRoleFieldActionPermission> criteriaBuilder = blazeQueryBuilder.forEntity(RbacRoleFieldActionPermission.class);
+    criteriaBuilder.where("roleId").eq(roleId).where("resourceFieldId").in(resourceFieldIds);
+    EntityViewSetting<RbacRoleFieldActionPermissionView, CriteriaBuilder<RbacRoleFieldActionPermissionView>> setting =
+        EntityViewSetting.create(RbacRoleFieldActionPermissionView.class);
+    return entityViewManager.applySetting(setting, criteriaBuilder).getResultList();
   }
 
   /**
    * Creates a unique key for a field permission entry.
    *
-   * @param permission the field permission entity
+   * @param permission the field permission view
    * @return the permission key
    */
-  private String fieldPermissionKey(RbacRoleFieldActionPermission permission) {
+  private String fieldPermissionKey(RbacRoleFieldActionPermissionView permission) {
     return fieldPermissionKey(permission.getRoleId(), permission.getResourceFieldId(), permission.getAction());
   }
 
@@ -445,7 +476,7 @@ public class RbacResourceSynchronizer {
   }
 
   /**
-   * Persists a new role-resource permission for the administrator role.
+   * Persists a new role-resource permission for the administrator role using a mutation view.
    *
    * @param roleId the role id
    * @param resourceId the resource id
@@ -456,33 +487,38 @@ public class RbacResourceSynchronizer {
     if (resourceId == null) {
       return;
     }
-    RbacRoleResourcePermission permission = new RbacRoleResourcePermission();
+    RbacRoleResourcePermissionMutationView permission = entityViewManager.create(RbacRoleResourcePermissionMutationView.class);
     permission.setRoleId(roleId);
     permission.setResourceId(resourceId);
     permission.setAction(action);
     permission.setAllowed(true);
     permission.setCreatedAt(now);
     permission.setUpdatedAt(now);
-    entityManager.persist(permission);
+    entityViewManager.save(managedEntityManager(), permission);
   }
 
   /**
    * Ensures an existing permission is marked as allowed.
    *
-   * @param permission the existing permission
+   * @param permission the existing permission view
    * @param now the current timestamp
    */
-  private void ensurePermissionAllowed(RbacRoleResourcePermission permission, Instant now) {
+  private void ensurePermissionAllowed(RbacRoleResourcePermissionView permission, Instant now) {
     if (permission == null || permission.isAllowed()) {
       return;
     }
-    permission.setAllowed(true);
-    permission.setUpdatedAt(now);
-    entityManager.merge(permission);
+    RbacRoleResourcePermissionMutationView updated =
+        entityViewManager.find(managedEntityManager(), RbacRoleResourcePermissionMutationView.class, permission.getId());
+    if (updated == null) {
+      return;
+    }
+    updated.setAllowed(true);
+    updated.setUpdatedAt(now);
+    entityViewManager.save(managedEntityManager(), updated);
   }
 
   /**
-   * Persists a new role-field-action permission for the administrator role.
+   * Persists a new role-field-action permission for the administrator role using a mutation view.
    *
    * @param roleId the role id
    * @param resourceFieldId the resource field id
@@ -493,33 +529,39 @@ public class RbacResourceSynchronizer {
     if (resourceFieldId == null) {
       return;
     }
-    RbacRoleFieldActionPermission permission = new RbacRoleFieldActionPermission();
+    RbacRoleFieldActionPermissionMutationView permission =
+        entityViewManager.create(RbacRoleFieldActionPermissionMutationView.class);
     permission.setRoleId(roleId);
     permission.setResourceFieldId(resourceFieldId);
     permission.setAction(action);
     permission.setAllowed(true);
     permission.setCreatedAt(now);
     permission.setUpdatedAt(now);
-    entityManager.persist(permission);
+    entityViewManager.save(managedEntityManager(), permission);
   }
 
   /**
    * Ensures an existing field permission is marked as allowed.
    *
-   * @param permission the existing field permission
+   * @param permission the existing field permission view
    * @param now the current timestamp
    */
-  private void ensureFieldPermissionAllowed(RbacRoleFieldActionPermission permission, Instant now) {
+  private void ensureFieldPermissionAllowed(RbacRoleFieldActionPermissionView permission, Instant now) {
     if (permission == null || permission.isAllowed()) {
       return;
     }
-    permission.setAllowed(true);
-    permission.setUpdatedAt(now);
-    entityManager.merge(permission);
+    RbacRoleFieldActionPermissionMutationView updated =
+        entityViewManager.find(managedEntityManager(), RbacRoleFieldActionPermissionMutationView.class, permission.getId());
+    if (updated == null) {
+      return;
+    }
+    updated.setAllowed(true);
+    updated.setUpdatedAt(now);
+    entityViewManager.save(managedEntityManager(), updated);
   }
 
   /**
-   * Persists a new resource field for a resource.
+   * Persists a new resource field for a resource using a mutation view.
    *
    * @param resourceId the resource id
    * @param fieldName the normalized field name
@@ -527,40 +569,44 @@ public class RbacResourceSynchronizer {
    * @param now the current timestamp
    */
   private void persistResourceField(UUID resourceId, String fieldName, String sourceMethodName, Instant now) {
-    RbacResourceField resourceField = new RbacResourceField();
-    RbacResource resourceReference = entityManager.getReference(RbacResource.class, resourceId);
-    resourceField.setResource(resourceReference);
+    RbacResourceFieldMutationView resourceField = entityViewManager.create(RbacResourceFieldMutationView.class);
+    resourceField.setResource(entityViewManager.getReference(RbacResourceReferenceView.class, resourceId));
     resourceField.setFieldName(fieldName);
     resourceField.setSourceMethodName(sourceMethodName);
     resourceField.setCreatedAt(now);
     resourceField.setUpdatedAt(now);
-    entityManager.persist(resourceField);
+    entityViewManager.save(managedEntityManager(), resourceField);
   }
 
   /**
-   * Updates an existing synchronized resource field.
+   * Updates an existing synchronized resource field using a mutation view.
    *
-   * @param resourceField the existing resource field
+   * @param resourceField the existing resource field view
    * @param sourceMethodName the current source method name
    * @param now the current timestamp
    */
-  private void updateResourceField(RbacResourceField resourceField, String sourceMethodName, Instant now) {
-    if (resourceField == null) {
+  private void updateResourceField(RbacResourceFieldView resourceField, String sourceMethodName, Instant now) {
+    if (resourceField == null || resourceField.getId() == null) {
       return;
     }
-    resourceField.setSourceMethodName(sourceMethodName);
-    resourceField.setUpdatedAt(now);
-    entityManager.merge(resourceField);
+    RbacResourceFieldMutationView updated =
+        entityViewManager.find(managedEntityManager(), RbacResourceFieldMutationView.class, resourceField.getId());
+    if (updated == null) {
+      return;
+    }
+    updated.setSourceMethodName(sourceMethodName);
+    updated.setUpdatedAt(now);
+    entityViewManager.save(managedEntityManager(), updated);
   }
 
   /**
    * Creates a unique key for resource field lookup.
    *
-   * @param resourceField the resource field
+   * @param resourceField the resource field view
    * @return the resource-field key
    */
-  private String resourceFieldKey(RbacResourceField resourceField) {
-    return resourceFieldKey(resourceField.getResource().getId(), resourceField.getFieldName());
+  private String resourceFieldKey(RbacResourceFieldView resourceField) {
+    return resourceFieldKey(resourceField.getResourceId(), resourceField.getFieldName());
   }
 
   /**
@@ -630,13 +676,28 @@ public class RbacResourceSynchronizer {
    * @param fieldName the field name
    * @return the placeholder resource field
    */
-  private RbacResourceField placeholderResourceField(UUID resourceId, String fieldName) {
-    RbacResourceField field = new RbacResourceField();
-    RbacResource resource = new RbacResource();
-    resource.setId(resourceId);
-    field.setResource(resource);
-    field.setFieldName(fieldName);
-    return field;
+  private RbacResourceFieldView placeholderResourceField(UUID resourceId, String fieldName) {
+    return new RbacResourceFieldView() {
+      @Override
+      public UUID getId() {
+        return null;
+      }
+
+      @Override
+      public UUID getResourceId() {
+        return resourceId;
+      }
+
+      @Override
+      public String getFieldName() {
+        return fieldName;
+      }
+
+      @Override
+      public String getSourceMethodName() {
+        return null;
+      }
+    };
   }
 
   /**
@@ -675,13 +736,28 @@ public class RbacResourceSynchronizer {
   }
 
   /**
-   * Flushes and refreshes the given entity to load generated identifiers.
+   * Removes a resource field using a mutation view.
    *
-   * @param entity the managed entity to refresh
+   * @param resourceField the resource field view
    */
-  private void flushAndRefresh(Object entity) {
-    entityManager.flush();
-    entityManager.refresh(entity);
+  private void removeResourceField(RbacResourceFieldView resourceField) {
+    if (resourceField == null || resourceField.getId() == null) {
+      return;
+    }
+    entityViewManager.remove(managedEntityManager(), RbacResourceFieldMutationView.class, resourceField.getId());
+  }
+
+  /**
+   * Returns the transaction-bound entity manager used by the query builder.
+   *
+   * @return the transaction-bound entity manager
+   */
+  private EntityManager managedEntityManager() {
+    EntityManager transactionalEntityManager = EntityManagerFactoryUtils.getTransactionalEntityManager(entityManagerFactory);
+    if (transactionalEntityManager == null) {
+      throw new IllegalStateException("No transaction-bound EntityManager available for mutation view operation.");
+    }
+    return transactionalEntityManager;
   }
 
   /**

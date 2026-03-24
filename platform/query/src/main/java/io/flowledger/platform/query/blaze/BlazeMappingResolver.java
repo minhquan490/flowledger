@@ -22,7 +22,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-@ConditionalOnMissingBean(MappingExpressionResolver.class)
+@ConditionalOnMissingBean(BlazeMappingResolver.class)
 public class BlazeMappingResolver {
   private static final String DUPLICATE_MAPPING_ERROR =
       "Each view method must declare at most one query annotation.";

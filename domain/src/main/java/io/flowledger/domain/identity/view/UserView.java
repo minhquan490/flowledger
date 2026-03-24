@@ -3,6 +3,7 @@ package io.flowledger.domain.identity.view;
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.IdMapping;
 import io.flowledger.domain.identity.aggregate.User;
+import io.flowledger.domain.identity.aggregate.UserStatus;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.rbac.infrastructure.graphql.RbacGraphQlAccessPolicy;
 import java.time.Instant;
@@ -35,7 +36,7 @@ public interface UserView {
    *
    * @return the user status
    */
-  String getStatus();
+  UserStatus getStatus();
 
   /**
    * Returns the creation timestamp.
