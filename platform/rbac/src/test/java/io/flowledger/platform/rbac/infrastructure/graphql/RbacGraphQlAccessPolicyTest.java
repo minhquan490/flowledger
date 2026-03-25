@@ -5,6 +5,7 @@ import io.flowledger.platform.graphql.domain.GraphQlReadRequest;
 import io.flowledger.platform.rbac.application.service.RbacFieldPermissionService;
 import io.flowledger.platform.rbac.application.service.RbacPermissionService;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
+import io.flowledger.platform.rbac.infrastructure.autoconfigure.RbacProperties;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,11 @@ class RbacGraphQlAccessPolicyTest {
   void authorizeReadFiltersFields() {
     RbacPermissionService permissionService = Mockito.mock(RbacPermissionService.class);
     RbacFieldPermissionService fieldPermissionService = Mockito.mock(RbacFieldPermissionService.class);
-    RbacGraphQlAccessPolicy policy = new RbacGraphQlAccessPolicy(permissionService, fieldPermissionService);
+    RbacGraphQlAccessPolicy policy = new RbacGraphQlAccessPolicy(
+        permissionService,
+        fieldPermissionService,
+        enabledProperties()
+    );
 
     GraphQlReadRequest request = new GraphQlReadRequest("account", Map.of("id", "acc_1"), List.of("id", "name"));
     when(fieldPermissionService.readableFields("account")).thenReturn(List.of("id"));
@@ -45,7 +50,11 @@ class RbacGraphQlAccessPolicyTest {
   void authorizeReadRejectsEmptyFieldSelection() {
     RbacPermissionService permissionService = Mockito.mock(RbacPermissionService.class);
     RbacFieldPermissionService fieldPermissionService = Mockito.mock(RbacFieldPermissionService.class);
-    RbacGraphQlAccessPolicy policy = new RbacGraphQlAccessPolicy(permissionService, fieldPermissionService);
+    RbacGraphQlAccessPolicy policy = new RbacGraphQlAccessPolicy(
+        permissionService,
+        fieldPermissionService,
+        enabledProperties()
+    );
 
     GraphQlReadRequest request = new GraphQlReadRequest("account", Map.of("id", "acc_1"), List.of("name"));
     when(fieldPermissionService.readableFields("account")).thenReturn(List.of("id"));
@@ -62,7 +71,11 @@ class RbacGraphQlAccessPolicyTest {
   void authorizeReadRejectsWhenAllowedFieldsMissing() {
     RbacPermissionService permissionService = Mockito.mock(RbacPermissionService.class);
     RbacFieldPermissionService fieldPermissionService = Mockito.mock(RbacFieldPermissionService.class);
-    RbacGraphQlAccessPolicy policy = new RbacGraphQlAccessPolicy(permissionService, fieldPermissionService);
+    RbacGraphQlAccessPolicy policy = new RbacGraphQlAccessPolicy(
+        permissionService,
+        fieldPermissionService,
+        enabledProperties()
+    );
 
     GraphQlReadRequest request = new GraphQlReadRequest("account", Map.of("id", "acc_1"), List.of("name"));
     when(fieldPermissionService.readableFields("account")).thenReturn(List.of());
@@ -70,5 +83,49 @@ class RbacGraphQlAccessPolicyTest {
     GraphQlApiException ex = assertThrows(GraphQlApiException.class, () -> policy.authorizeRead(request));
 
     assertEquals(403, ex.getStatusCode());
+  }
+
+  /**
+   * Verifies read authorization is bypassed when RBAC is disabled.
+   */
+  @Test
+  void authorizeReadReturnsInputWhenDisabled() {
+    RbacPermissionService permissionService = Mockito.mock(RbacPermissionService.class);
+    RbacFieldPermissionService fieldPermissionService = Mockito.mock(RbacFieldPermissionService.class);
+    RbacGraphQlAccessPolicy policy = new RbacGraphQlAccessPolicy(
+        permissionService,
+        fieldPermissionService,
+        disabledProperties()
+    );
+
+    GraphQlReadRequest request = new GraphQlReadRequest("account", Map.of("id", "acc_1"), List.of("id", "name"));
+
+    GraphQlReadRequest result = policy.authorizeRead(request);
+
+    assertEquals(request, result);
+    Mockito.verifyNoInteractions(permissionService);
+    Mockito.verifyNoInteractions(fieldPermissionService);
+  }
+
+  /**
+   * Creates properties with RBAC enabled.
+   *
+   * @return RBAC properties
+   */
+  private RbacProperties enabledProperties() {
+    RbacProperties properties = new RbacProperties();
+    properties.setEnabled(true);
+    return properties;
+  }
+
+  /**
+   * Creates properties with RBAC disabled.
+   *
+   * @return RBAC properties
+   */
+  private RbacProperties disabledProperties() {
+    RbacProperties properties = new RbacProperties();
+    properties.setEnabled(false);
+    return properties;
   }
 }

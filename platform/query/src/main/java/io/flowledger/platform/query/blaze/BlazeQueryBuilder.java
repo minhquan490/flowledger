@@ -159,9 +159,9 @@ public class BlazeQueryBuilder {
   }
 
   /**
-   * Applies OR predicates from a value collection.
+   * Applies OR predicates from a value collection on the root criteria builder.
    *
-   * @param criteriaBuilder the criteria builder
+   * @param criteriaBuilder the root criteria builder
    * @param logicalOrValue the OR value that contains disjunctive clauses
    * @param <T> entity type for the query
    */
@@ -180,6 +180,27 @@ public class BlazeQueryBuilder {
   }
 
   /**
+   * Applies OR predicates from a value collection inside an existing AND branch.
+   *
+   * @param whereAndBuilder the current AND branch builder
+   * @param logicalOrValue the OR value that contains disjunctive clauses
+   * @param <T> parent builder type
+   */
+  private <T> void applyLogicalOr(WhereAndBuilder<T> whereAndBuilder, Object logicalOrValue) {
+    Collection<Map<String, Object>> clauses = resolveOrClauses(logicalOrValue);
+    if (clauses.isEmpty()) {
+      return;
+    }
+    WhereOrBuilder<WhereAndBuilder<T>> whereOrBuilder = whereAndBuilder.whereOr();
+    for (Map<String, Object> clause : clauses) {
+      WhereAndBuilder<WhereOrBuilder<WhereAndBuilder<T>>> clauseAndBuilder = whereOrBuilder.whereAnd();
+      applyAndClause(clauseAndBuilder, clause);
+      whereOrBuilder = clauseAndBuilder.endAnd();
+    }
+    whereOrBuilder.endOr();
+  }
+
+  /**
    * Applies AND predicates inside a single OR clause.
    *
    * @param whereAndBuilder the and builder
@@ -192,10 +213,13 @@ public class BlazeQueryBuilder {
     }
     for (Map.Entry<String, Object> entry : clause.entrySet()) {
       String field = entry.getKey();
-      if (field == null || field.isBlank() || isLogicalOrKey(field)) {
-        continue;
+      if (field != null && !field.isBlank()) {
+        if (isLogicalOrKey(field)) {
+          applyLogicalOr(whereAndBuilder, entry.getValue());
+        } else {
+          applyFieldPredicate(whereAndBuilder, field, entry.getValue());
+        }
       }
-      applyFieldPredicate(whereAndBuilder, field, entry.getValue());
     }
   }
 

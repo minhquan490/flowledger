@@ -3,12 +3,14 @@ package io.flowledger.platform.rbac.infrastructure.blaze;
 import io.flowledger.platform.query.blaze.BlazeQueryBuilderExtension;
 import io.flowledger.platform.rbac.application.context.RbacRequestContextHolder;
 import io.flowledger.platform.rbac.application.service.RbacRowFilterService;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import io.flowledger.platform.rbac.infrastructure.autoconfigure.RbacProperties;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Blaze query builder extension that applies RBAC-aware filter and field customization.
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class BlazeRbacQueryBuilderExtension implements BlazeQueryBuilderExtension {
   private final RbacRowFilterService rowFilterService;
+  private final RbacProperties properties;
 
   /**
    * Customizes filters by applying RBAC constraints.
@@ -26,6 +29,9 @@ public class BlazeRbacQueryBuilderExtension implements BlazeQueryBuilderExtensio
    */
   @Override
   public Map<String, Object> customizeFilters(@NonNull Map<String, Object> filters) {
+    if (!properties.isEnabled()) {
+      return filters;
+    }
     return RbacRequestContextHolder.get()
         .map(context -> applyRowFilters(context.resource(), filters))
         .orElse(filters);

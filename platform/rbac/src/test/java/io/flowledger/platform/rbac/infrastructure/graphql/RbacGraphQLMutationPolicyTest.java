@@ -6,6 +6,7 @@ import io.flowledger.platform.rbac.application.service.RbacFieldPermissionServic
 import io.flowledger.platform.rbac.application.service.RbacPermissionService;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacFieldAction;
+import io.flowledger.platform.rbac.infrastructure.autoconfigure.RbacProperties;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,11 @@ class RbacGraphQLMutationPolicyTest {
   void validateWriteAccessForCreate() {
     RbacPermissionService permissionService = Mockito.mock(RbacPermissionService.class);
     RbacFieldPermissionService fieldPermissionService = Mockito.mock(RbacFieldPermissionService.class);
-    RbacGraphQLMutationPolicy policy = new RbacGraphQLMutationPolicy(permissionService, fieldPermissionService);
+    RbacGraphQLMutationPolicy policy = new RbacGraphQLMutationPolicy(
+        permissionService,
+        fieldPermissionService,
+        enabledProperties()
+    );
 
     GraphQlMutationRequest request = new GraphQlMutationRequest(
         "account",
@@ -49,7 +54,11 @@ class RbacGraphQLMutationPolicyTest {
   void validateWriteAccessForDelete() {
     RbacPermissionService permissionService = Mockito.mock(RbacPermissionService.class);
     RbacFieldPermissionService fieldPermissionService = Mockito.mock(RbacFieldPermissionService.class);
-    RbacGraphQLMutationPolicy policy = new RbacGraphQLMutationPolicy(permissionService, fieldPermissionService);
+    RbacGraphQLMutationPolicy policy = new RbacGraphQLMutationPolicy(
+        permissionService,
+        fieldPermissionService,
+        enabledProperties()
+    );
 
     GraphQlMutationRequest request = new GraphQlMutationRequest(
         "account",
@@ -71,7 +80,11 @@ class RbacGraphQLMutationPolicyTest {
   void validateWriteAccessRejectsUnsupportedAction() {
     RbacPermissionService permissionService = Mockito.mock(RbacPermissionService.class);
     RbacFieldPermissionService fieldPermissionService = Mockito.mock(RbacFieldPermissionService.class);
-    RbacGraphQLMutationPolicy policy = new RbacGraphQLMutationPolicy(permissionService, fieldPermissionService);
+    RbacGraphQLMutationPolicy policy = new RbacGraphQLMutationPolicy(
+        permissionService,
+        fieldPermissionService,
+        enabledProperties()
+    );
 
     GraphQlMutationRequest request = new GraphQlMutationRequest(
         "account",
@@ -83,5 +96,53 @@ class RbacGraphQLMutationPolicyTest {
     GraphQlApiException ex = assertThrows(GraphQlApiException.class, () -> policy.validateWriteAccess("account", request));
 
     assertEquals(400, ex.getStatusCode());
+  }
+
+  /**
+   * Verifies RBAC checks are bypassed when RBAC is disabled.
+   */
+  @Test
+  void validateWriteAccessReturnsWhenDisabled() {
+    RbacPermissionService permissionService = Mockito.mock(RbacPermissionService.class);
+    RbacFieldPermissionService fieldPermissionService = Mockito.mock(RbacFieldPermissionService.class);
+    RbacGraphQLMutationPolicy policy = new RbacGraphQLMutationPolicy(
+        permissionService,
+        fieldPermissionService,
+        disabledProperties()
+    );
+
+    GraphQlMutationRequest request = new GraphQlMutationRequest(
+        "account",
+        "create",
+        Map.of(),
+        Map.of("name", "Main")
+    );
+
+    policy.validateWriteAccess("account", request);
+
+    Mockito.verifyNoInteractions(permissionService);
+    Mockito.verifyNoInteractions(fieldPermissionService);
+  }
+
+  /**
+   * Creates properties with RBAC enabled.
+   *
+   * @return RBAC properties
+   */
+  private RbacProperties enabledProperties() {
+    RbacProperties properties = new RbacProperties();
+    properties.setEnabled(true);
+    return properties;
+  }
+
+  /**
+   * Creates properties with RBAC disabled.
+   *
+   * @return RBAC properties
+   */
+  private RbacProperties disabledProperties() {
+    RbacProperties properties = new RbacProperties();
+    properties.setEnabled(false);
+    return properties;
   }
 }

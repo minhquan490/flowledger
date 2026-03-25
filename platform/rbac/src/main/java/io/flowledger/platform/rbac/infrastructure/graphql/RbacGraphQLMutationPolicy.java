@@ -1,17 +1,19 @@
 package io.flowledger.platform.rbac.infrastructure.graphql;
 
-import io.flowledger.platform.graphql.application.GraphQlApiException;
-import io.flowledger.platform.graphql.application.GraphQLMutationPolicy;
-import io.flowledger.platform.graphql.domain.GraphQlMutationRequest;
 import io.flowledger.core.web.HttpStatusCodes;
+import io.flowledger.platform.graphql.application.GraphQLMutationPolicy;
+import io.flowledger.platform.graphql.application.GraphQlApiException;
+import io.flowledger.platform.graphql.domain.GraphQlMutationRequest;
 import io.flowledger.platform.rbac.application.service.RbacFieldPermissionService;
 import io.flowledger.platform.rbac.application.service.RbacPermissionService;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacFieldAction;
-import java.util.List;
-import java.util.Locale;
+import io.flowledger.platform.rbac.infrastructure.autoconfigure.RbacProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * GraphQL mutation policy enforcing RBAC write rules.
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Component;
 public class RbacGraphQLMutationPolicy implements GraphQLMutationPolicy {
   private final RbacPermissionService permissionService;
   private final RbacFieldPermissionService fieldPermissionService;
+  private final RbacProperties properties;
 
   /**
    * Validates whether the caller can perform the mutation request.
@@ -30,6 +33,9 @@ public class RbacGraphQLMutationPolicy implements GraphQLMutationPolicy {
    */
   @Override
   public void validateWriteAccess(String resource, GraphQlMutationRequest request) {
+    if (!properties.isEnabled()) {
+      return;
+    }
     if (request == null || request.action() == null) {
       throw new GraphQlApiException(
           "Mutation request must include an action.",

@@ -1,18 +1,20 @@
 package io.flowledger.platform.rbac.infrastructure.graphql;
 
+import io.flowledger.core.web.HttpStatusCodes;
 import io.flowledger.platform.graphql.application.GraphQlAccessPolicy;
 import io.flowledger.platform.graphql.application.GraphQlApiException;
 import io.flowledger.platform.graphql.domain.GraphQlReadRequest;
 import io.flowledger.platform.graphql.domain.GraphQlSearchRequest;
-import io.flowledger.core.web.HttpStatusCodes;
 import io.flowledger.platform.rbac.application.context.RbacRequestContext;
 import io.flowledger.platform.rbac.application.context.RbacRequestContextHolder;
 import io.flowledger.platform.rbac.application.service.RbacFieldPermissionService;
 import io.flowledger.platform.rbac.application.service.RbacPermissionService;
 import io.flowledger.platform.rbac.domain.role.valueobject.RbacAction;
-import java.util.List;
+import io.flowledger.platform.rbac.infrastructure.autoconfigure.RbacProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * GraphQL access policy enforcing RBAC read rules and field filtering.
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Component;
 public class RbacGraphQlAccessPolicy implements GraphQlAccessPolicy {
   private final RbacPermissionService permissionService;
   private final RbacFieldPermissionService fieldPermissionService;
+  private final RbacProperties properties;
 
   /**
    * Applies RBAC rules to a read request.
@@ -31,6 +34,9 @@ public class RbacGraphQlAccessPolicy implements GraphQlAccessPolicy {
    */
   @Override
   public GraphQlReadRequest authorizeRead(GraphQlReadRequest request) {
+    if (!properties.isEnabled()) {
+      return request;
+    }
     String resource = request.model();
     permissionService.assertHasPermission(resource, RbacAction.READ);
     List<String> filtered = filterReadableFields(resource, request.fields());
@@ -45,6 +51,9 @@ public class RbacGraphQlAccessPolicy implements GraphQlAccessPolicy {
    */
   @Override
   public GraphQlSearchRequest authorizeSearch(GraphQlSearchRequest request) {
+    if (!properties.isEnabled()) {
+      return request;
+    }
     String resource = request.model();
     permissionService.assertHasPermission(resource, RbacAction.READ);
     RbacRequestContextHolder.set(new RbacRequestContext(resource, RbacAction.READ));
