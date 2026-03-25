@@ -34,7 +34,7 @@ public class RbacResource {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "id", nullable = false)
+  @Column(name = "id", length = Integer.MAX_VALUE)
   private UUID id;
 
   @Column(name = "name", nullable = false, unique = true, length = 200)
@@ -46,10 +46,10 @@ public class RbacResource {
   @OneToMany(mappedBy = "resource", fetch = FetchType.LAZY)
   private List<RbacResourceField> fields = new ArrayList<>();
 
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant createdAt;
 
-  @Column(name = "updated_at", nullable = false)
+  @Column(name = "updated_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant updatedAt;
 
   /**

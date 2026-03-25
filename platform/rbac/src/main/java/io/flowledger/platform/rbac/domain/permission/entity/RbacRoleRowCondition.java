@@ -26,22 +26,22 @@ import java.util.UUID;
 public class RbacRoleRowCondition {
 
   @Id
-  @Column(name = "id", nullable = false)
+  @Column(name = "id", nullable = false, length = Integer.MAX_VALUE)
   private UUID id;
 
-  @Column(name = "role_id", nullable = false)
+  @Column(name = "role_id", nullable = false, length = Integer.MAX_VALUE)
   private UUID roleId;
 
-  @Column(name = "resource_id", nullable = false)
+  @Column(name = "resource_id", nullable = false, length = Integer.MAX_VALUE)
   private UUID resourceId;
 
-  @Column(name = "condition_json", nullable = false, columnDefinition = "text")
+  @Column(name = "condition_json", length = Integer.MAX_VALUE)
   private String conditionJson;
 
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant createdAt;
 
-  @Column(name = "updated_at", nullable = false)
+  @Column(name = "updated_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant updatedAt;
 
   /**

@@ -29,7 +29,7 @@ public class RbacRole {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "id", nullable = false)
+  @Column(name = "id", nullable = false, length = Integer.MAX_VALUE)
   private UUID id;
 
   @Column(name = "code", nullable = false, unique = true, length = 100)
@@ -38,13 +38,13 @@ public class RbacRole {
   @Column(name = "name", nullable = false, length = 200)
   private String name;
 
-  @Column(name = "is_default", nullable = false)
+  @Column(name = "is_default", nullable = false, length = Integer.MAX_VALUE)
   private boolean defaultRole;
 
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant createdAt;
 
-  @Column(name = "updated_at", nullable = false)
+  @Column(name = "updated_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant updatedAt;
 
   /**

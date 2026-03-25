@@ -1,56 +1,84 @@
 package io.flowledger.platform.query.blaze.filter;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import io.flowledger.platform.query.QuerySystemException;
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * Shared filter operator constants and helper sets.
+ * Enumerates supported filter operators and helper sets.
  */
-public final class BlazeFilterOperators {
-  public static final String EQ = "eq";
-  public static final String NE = "ne";
-  public static final String NEQ = "neq";
-  public static final String GT = "gt";
-  public static final String GE = "ge";
-  public static final String GTE = "gte";
-  public static final String LT = "lt";
-  public static final String LE = "le";
-  public static final String LTE = "lte";
-  public static final String BETWEEN = "between";
-  public static final String NOT_BETWEEN = "notbetween";
-  public static final String N_BETWEEN = "nbetween";
-  public static final String IN = "in";
-  public static final String NOT_IN = "notin";
-  public static final String NIN = "nin";
-  public static final String LIKE = "like";
-  public static final String NOT_LIKE = "notlike";
-  public static final String ILIKE = "ilike";
-  public static final String NOT_ILIKE = "notilike";
-  public static final String IS_NULL = "isnull";
-  public static final String IS_NOT_NULL = "isnotnull";
+public enum BlazeFilterOperators {
+  EQ("eq"),
+  NE("ne"),
+  NEQ("neq"),
+  GT("gt"),
+  GE("ge"),
+  GTE("gte"),
+  LT("lt"),
+  LE("le"),
+  LTE("lte"),
+  BETWEEN("between"),
+  NOT_BETWEEN("notbetween"),
+  N_BETWEEN("nbetween"),
+  IN("in"),
+  NOT_IN("notin"),
+  NIN("nin"),
+  LIKE("like"),
+  NOT_LIKE("notlike"),
+  ILIKE("ilike"),
+  NOT_ILIKE("notilike"),
+  IS_NULL("isnull"),
+  IS_NOT_NULL("isnotnull");
 
-  public static final Set<String> VALUE_REQUIRED_OPERATORS = Set.of(
+  public static final Set<BlazeFilterOperators> VALUE_REQUIRED_OPERATORS = Set.of(
       EQ, NE, NEQ, GT, GE, GTE, LT, LE, LTE,
       IN, NOT_IN, NIN, LIKE, NOT_LIKE, ILIKE, NOT_ILIKE,
       BETWEEN, NOT_BETWEEN, N_BETWEEN
   );
-  public static final Set<String> VALUE_OPTIONAL_OPERATORS = Set.of(IS_NULL, IS_NOT_NULL);
-  public static final Set<String> SUPPORTED_OPERATORS = Set.of(
-      EQ, NE, NEQ, GT, GE, GTE, LT, LE, LTE,
-      IN, NOT_IN, NIN, LIKE, NOT_LIKE, ILIKE, NOT_ILIKE,
-      IS_NULL, IS_NOT_NULL, BETWEEN, NOT_BETWEEN, N_BETWEEN
-  );
-  public static final Set<String> BETWEEN_OPERATORS = Set.of(BETWEEN, NOT_BETWEEN, N_BETWEEN);
+  public static final Set<BlazeFilterOperators> VALUE_OPTIONAL_OPERATORS = Set.of(IS_NULL, IS_NOT_NULL);
+  public static final Set<BlazeFilterOperators> SUPPORTED_OPERATORS = Set.copyOf(Set.of(values()));
+  public static final Set<BlazeFilterOperators> BETWEEN_OPERATORS = Set.of(BETWEEN, NOT_BETWEEN, N_BETWEEN);
+  private static final Map<String, BlazeFilterOperators> OPERATORS_BY_KEYWORD = Arrays.stream(values())
+      .collect(Collectors.toUnmodifiableMap(BlazeFilterOperators::keyword, operator -> operator));
+  private static final Set<String> SUPPORTED_OPERATOR_KEYWORDS = Arrays.stream(values())
+      .map(BlazeFilterOperators::keyword)
+      .collect(Collectors.toUnmodifiableSet());
 
-  /**
-   * Utility class.
-   */
-  private BlazeFilterOperators() {
+  private final String keyword;
+
+  BlazeFilterOperators(String keyword) {
+    this.keyword = keyword;
   }
 
   /**
-   * Normalizes an operator to lower-case.
+   * Returns the canonical lowercase keyword for the operator.
+   *
+   * @return canonical operator keyword
+   */
+  @JsonValue
+  public String keyword() {
+    return keyword;
+  }
+
+  /**
+   * Creates an operator enum from a raw operator keyword.
+   *
+   * @param operator raw operator keyword
+   * @return matching operator enum
+   */
+  @JsonCreator
+  public static BlazeFilterOperators fromOperator(String operator) {
+    String normalizedOperator = normalize(operator);
+    return OPERATORS_BY_KEYWORD.get(normalizedOperator);
+  }
+
+  /**
+   * Normalizes an operator to lower-case and validates support.
    *
    * @param operator raw operator
    * @return normalized operator
@@ -59,6 +87,10 @@ public final class BlazeFilterOperators {
     if (operator == null || operator.isBlank()) {
       throw new QuerySystemException("Filter operator must be a non-empty string.");
     }
-    return operator.toLowerCase(Locale.ROOT);
+    String normalizedOperator = operator.toLowerCase(Locale.ROOT);
+    if (!SUPPORTED_OPERATOR_KEYWORDS.contains(normalizedOperator)) {
+      throw new QuerySystemException("Unsupported filter operator: " + operator);
+    }
+    return normalizedOperator;
   }
 }

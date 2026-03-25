@@ -33,7 +33,7 @@ public class RbacResourceField {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "id", nullable = false)
+  @Column(name = "id", nullable = false, length = Integer.MAX_VALUE)
   private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -46,10 +46,10 @@ public class RbacResourceField {
   @Column(name = "source_method_name", nullable = false, length = 200)
   private String sourceMethodName;
 
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant createdAt;
 
-  @Column(name = "updated_at", nullable = false)
+  @Column(name = "updated_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant updatedAt;
 
   /**

@@ -9,22 +9,23 @@ import com.blazebit.persistence.WhereAndBuilder;
 import com.blazebit.persistence.WhereOrBuilder;
 import com.blazebit.persistence.view.EntityViewSetting;
 import io.flowledger.platform.query.QuerySystemException;
-import io.flowledger.platform.query.blaze.filter.BlazeFilterOperators;
 import io.flowledger.platform.query.blaze.filter.BlazeFilterOperatorRegistry;
+import io.flowledger.platform.query.blaze.filter.BlazeFilterOperators;
 import io.flowledger.platform.query.blaze.filter.BlazeFilterSyntax;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Builder for Blaze-Persistence criteria queries with filter application support.
@@ -149,7 +150,7 @@ public class BlazeQueryBuilder {
    */
   private void applyFieldPredicate(BaseWhereBuilder<?> whereBuilder, String field, Object rawValue) {
     if (!(rawValue instanceof Map<?, ?> valueMap) || !valueMap.containsKey(BlazeFilterSyntax.OPERATOR_KEY)) {
-      filterOperatorRegistry.apply(BlazeFilterOperators.EQ, whereBuilder, field, rawValue);
+      filterOperatorRegistry.apply(BlazeFilterOperators.EQ.keyword(), whereBuilder, field, rawValue);
       return;
     }
     String operator = resolveOperator(valueMap);
@@ -319,6 +320,7 @@ public class BlazeQueryBuilder {
    * @param limit the limit or null for default
    * @return paginated criteria builder
    */
+  @SuppressWarnings("java:S1452")
   public PaginatedCriteriaBuilder<?> applyPagination(
       FullQueryBuilder<?, ?> viewQuery,
       Integer offset,

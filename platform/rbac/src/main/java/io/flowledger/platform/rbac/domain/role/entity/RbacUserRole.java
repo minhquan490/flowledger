@@ -26,19 +26,19 @@ import java.util.UUID;
 public class RbacUserRole {
 
   @Id
-  @Column(name = "id", nullable = false)
+  @Column(name = "id", nullable = false, length = Integer.MAX_VALUE)
   private UUID id;
 
-  @Column(name = "user_id", nullable = false)
+  @Column(name = "user_id", nullable = false, length = Integer.MAX_VALUE)
   private UUID userId;
 
-  @Column(name = "role_id", nullable = false)
+  @Column(name = "role_id", nullable = false, length = Integer.MAX_VALUE)
   private UUID roleId;
 
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant createdAt;
 
-  @Column(name = "updated_at", nullable = false)
+  @Column(name = "updated_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant updatedAt;
 
   /**

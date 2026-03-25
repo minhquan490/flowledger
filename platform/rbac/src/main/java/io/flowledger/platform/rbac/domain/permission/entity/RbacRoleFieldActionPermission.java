@@ -32,26 +32,26 @@ public class RbacRoleFieldActionPermission {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "id", nullable = false)
+  @Column(name = "id", nullable = false, length = Integer.MAX_VALUE)
   private UUID id;
 
-  @Column(name = "role_id", nullable = false)
+  @Column(name = "role_id", nullable = false, length = Integer.MAX_VALUE)
   private UUID roleId;
 
-  @Column(name = "resource_field_id", nullable = false)
+  @Column(name = "resource_field_id", nullable = false, length = Integer.MAX_VALUE)
   private UUID resourceFieldId;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "action", nullable = false, length = 20)
   private RbacFieldAction action;
 
-  @Column(name = "allowed", nullable = false)
+  @Column(name = "allowed", nullable = false, length = Integer.MAX_VALUE)
   private boolean allowed;
 
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant createdAt;
 
-  @Column(name = "updated_at", nullable = false)
+  @Column(name = "updated_at", nullable = false, length = Integer.MAX_VALUE)
   private Instant updatedAt;
 
   /**

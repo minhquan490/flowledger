@@ -25,11 +25,45 @@ class RbacRoleRowConditionMutationViewPayloadValidatorTest {
     assertValidCondition(
         """
         {
-          "status": { "op": "eq", "value": "ACTIVE" },
-          "amount": { "op": "between", "value": { "from": 10, "to": 20 } },
-          "or": [
-            { "priority": { "op": "gt", "value": 3 } },
-            { "tenantId": { "op": "in", "value": ["t1", "t2"] } }
+          "kind": "GROUP",
+          "id": "g-root",
+          "logicalOp": "AND",
+          "children": [
+            {
+              "kind": "RULE",
+              "id": "r-status",
+              "field": "status",
+              "op": "EQ",
+              "value": "ACTIVE"
+            },
+            {
+              "kind": "RULE",
+              "id": "r-amount",
+              "field": "amount",
+              "op": "BETWEEN",
+              "value": { "from": 10, "to": 20 }
+            },
+            {
+              "kind": "GROUP",
+              "id": "g-or",
+              "logicalOp": "OR",
+              "children": [
+                {
+                  "kind": "RULE",
+                  "id": "r-priority",
+                  "field": "priority",
+                  "op": "GT",
+                  "value": 3
+                },
+                {
+                  "kind": "RULE",
+                  "id": "r-tenant",
+                  "field": "tenantId",
+                  "op": "IN",
+                  "value": ["t1", "t2"]
+                }
+              ]
+            }
           ]
         }
         """
@@ -44,10 +78,38 @@ class RbacRoleRowConditionMutationViewPayloadValidatorTest {
     assertValidCondition(
         """
         {
-          "tenantId": { "op": "eq", "value": "t1" },
-          "or": [
-            { "status": { "op": "eq", "value": "ACTIVE" } },
-            { "status": { "op": "eq", "value": "PENDING" } }
+          "kind": "GROUP",
+          "id": "g-root",
+          "logicalOp": "AND",
+          "children": [
+            {
+              "kind": "RULE",
+              "id": "r-tenant",
+              "field": "tenantId",
+              "op": "EQ",
+              "value": "t1"
+            },
+            {
+              "kind": "GROUP",
+              "id": "g-or",
+              "logicalOp": "OR",
+              "children": [
+                {
+                  "kind": "RULE",
+                  "id": "r-status-a",
+                  "field": "status",
+                  "op": "EQ",
+                  "value": "ACTIVE"
+                },
+                {
+                  "kind": "RULE",
+                  "id": "r-status-b",
+                  "field": "status",
+                  "op": "EQ",
+                  "value": "PENDING"
+                }
+              ]
+            }
           ]
         }
         """
@@ -62,11 +124,37 @@ class RbacRoleRowConditionMutationViewPayloadValidatorTest {
     assertValidCondition(
         """
         {
-          "or": [
-            { "status": { "op": "eq", "value": "ACTIVE" } },
+          "kind": "GROUP",
+          "id": "g-root",
+          "logicalOp": "OR",
+          "children": [
             {
-              "type": { "op": "eq", "value": "BANK" },
-              "country": { "op": "eq", "value": "US" }
+              "kind": "RULE",
+              "id": "r-status",
+              "field": "status",
+              "op": "EQ",
+              "value": "ACTIVE"
+            },
+            {
+              "kind": "GROUP",
+              "id": "g-and",
+              "logicalOp": "AND",
+              "children": [
+                {
+                  "kind": "RULE",
+                  "id": "r-type",
+                  "field": "type",
+                  "op": "EQ",
+                  "value": "BANK"
+                },
+                {
+                  "kind": "RULE",
+                  "id": "r-country",
+                  "field": "country",
+                  "op": "EQ",
+                  "value": "US"
+                }
+              ]
             }
           ]
         }
@@ -90,10 +178,14 @@ class RbacRoleRowConditionMutationViewPayloadValidatorTest {
     assertInvalidCondition(
         """
         {
-          "status": { "op": "contains", "value": "ACTIVE" }
+          "kind": "RULE",
+          "id": "r-status",
+          "field": "status",
+          "op": "CONTAINS",
+          "value": "ACTIVE"
         }
         """,
-        "Unsupported filter operator: contains"
+        "Unsupported operator: CONTAINS"
     );
   }
 
@@ -105,10 +197,14 @@ class RbacRoleRowConditionMutationViewPayloadValidatorTest {
     assertInvalidCondition(
         """
         {
-          "amount": { "op": "between", "value": [1, 2, 3] }
+          "kind": "RULE",
+          "id": "r-amount",
+          "field": "amount",
+          "op": "BETWEEN",
+          "value": [1, 2, 3]
         }
         """,
-        "BETWEEN array value must contain exactly 2 items."
+        "BETWEEN must have exactly 2 items."
     );
   }
 
@@ -120,16 +216,13 @@ class RbacRoleRowConditionMutationViewPayloadValidatorTest {
     assertInvalidCondition(
         """
         {
-          "or": [
-            {
-              "or": [
-                { "status": { "op": "eq", "value": "ACTIVE" } }
-              ]
-            }
-          ]
+          "kind": "GROUP",
+          "id": "g-root",
+          "logicalOp": "OR",
+          "children": []
         }
         """,
-        "'or' is only supported at root level."
+        "'children' must be non-empty."
     );
   }
 
