@@ -2,7 +2,6 @@ package io.flowledger.platform.query.mapping;
 
 import io.flowledger.platform.query.QuerySystemException;
 import org.jspecify.annotations.Nullable;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.MergedAnnotations;
@@ -20,7 +19,6 @@ import java.util.Optional;
  * raw {@code value()} is returned.
  */
 @Component
-@ConditionalOnMissingBean(MappingExpressionResolver.class)
 public class MappingExpressionResolver {
 
   public static final String CACHE_NAME = "mappingExpressionResolver";
@@ -34,12 +32,16 @@ public class MappingExpressionResolver {
    */
   @Cacheable(cacheNames = CACHE_NAME, key = "#annotation.annotationType().getName()")
   public <T extends Annotation> Optional<String> resolve(T annotation) {
-    if (annotation == null) {
+    if (annotation == null || !canResolve(annotation)) {
       return Optional.empty();
     }
     AnnotationValue annotationValue = requireAnnotationValue(annotation);
     MappingExpression expression = AnnotationUtils.getAnnotation(annotation, MappingExpression.class);
     return Optional.of(formatExpression(annotationValue.value(), expression));
+  }
+
+  public boolean canResolve(Annotation annotation) {
+    return annotation.annotationType().isAnnotationPresent(AnnotationValue.class);
   }
 
   /**

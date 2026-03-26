@@ -11,6 +11,9 @@ import io.flowledger.platform.rbac.domain.resource.aggregate.RbacResource;
 import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,14 +21,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 /**
  * Resolves row-level filter conditions for RBAC.
  */
 @Component
-@RequiredArgsConstructor
 public class RbacRowFilterService {
   private final RbacRoleResolver roleResolver;
   private final ObjectMapper objectMapper;
@@ -33,6 +33,16 @@ public class RbacRowFilterService {
 
   @PersistenceContext
   private EntityManager entityManager;
+
+  public RbacRowFilterService(
+      RbacRoleResolver roleResolver,
+      ObjectMapper objectMapper,
+      @Lazy BlazeQueryBuilder blazeQueryBuilder
+  ) {
+    this.roleResolver = roleResolver;
+    this.objectMapper = objectMapper;
+    this.blazeQueryBuilder = blazeQueryBuilder;
+  }
 
   /**
    * Resolves row filter conditions for the current subject.

@@ -2,16 +2,17 @@ package io.flowledger.application;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 
 /**
  * Main Spring Boot application entry point for FlowLedger.
  */
 @SpringBootApplication(
     scanBasePackages = {
-        "io.flowledger.application",
-        "io.flowledger.core"
+        "io.flowledger"
     }
 )
+@AutoConfigurationPackage(basePackages = "io.flowledger")
 public class FlowLedgerApplication {
 
   /**

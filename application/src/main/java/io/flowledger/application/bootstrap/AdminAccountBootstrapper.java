@@ -21,6 +21,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -53,6 +54,7 @@ public class AdminAccountBootstrapper implements ApplicationRunner {
    * @param args application arguments
    */
   @Override
+  @Transactional
   public void run(@NonNull ApplicationArguments args) {
     RbacRoleView adminRole = findAdminRole();
     if (adminRole == null) {

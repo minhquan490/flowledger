@@ -11,7 +11,6 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.StringMemberValue;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -22,7 +21,6 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
-@ConditionalOnMissingBean(BlazeViewMappingApplier.class)
 public class BlazeViewMappingApplier {
   private final BlazeMappingResolver resolver;
 

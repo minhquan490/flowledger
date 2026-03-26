@@ -8,7 +8,6 @@ import io.flowledger.platform.query.QuerySystemException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -22,7 +21,6 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @Component
-@ConditionalOnMissingBean(EntityViewManagerBuilder.class)
 public class EntityViewManagerBuilder {
   private final BlazeViewMappingApplier mappingApplier;
   private final BlazeViewLoader blazeViewLoader;

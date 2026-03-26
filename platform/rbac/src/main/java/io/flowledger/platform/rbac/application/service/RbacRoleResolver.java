@@ -1,22 +1,22 @@
 package io.flowledger.platform.rbac.application.service;
 
-import io.flowledger.platform.rbac.application.RbacSubjectProvider;
 import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
+import io.flowledger.platform.rbac.application.RbacSubjectProvider;
 import io.flowledger.platform.rbac.domain.role.aggregate.RbacRole;
 import io.flowledger.platform.rbac.domain.role.entity.RbacUserRole;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 /**
  * Resolves roles for the current subject, falling back to default roles.
  */
 @Component
-@RequiredArgsConstructor
 public class RbacRoleResolver {
   private static final String ROLE_ALIAS = "role";
   private static final String USER_ROLE_ALIAS = "userRole";
@@ -30,6 +30,11 @@ public class RbacRoleResolver {
 
   @PersistenceContext
   private EntityManager entityManager;
+
+  public RbacRoleResolver(RbacSubjectProvider subjectProvider, @Lazy BlazeQueryBuilder blazeQueryBuilder) {
+    this.subjectProvider = subjectProvider;
+    this.blazeQueryBuilder = blazeQueryBuilder;
+  }
 
   /**
    * Resolves roles for the current subject.

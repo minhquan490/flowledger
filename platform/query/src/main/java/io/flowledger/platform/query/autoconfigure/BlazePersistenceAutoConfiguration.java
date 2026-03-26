@@ -8,7 +8,6 @@ import io.flowledger.platform.query.QuerySystemException;
 import io.flowledger.platform.query.blaze.EntityViewManagerBuilder;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
@@ -18,7 +17,6 @@ import java.util.ServiceLoader;
  * Auto-configuration for Blaze-Persistence infrastructure.
  */
 @AutoConfiguration
-@ConditionalOnBean({CriteriaBuilderFactory.class, EntityViewManager.class, EntityManagerFactory.class})
 public class BlazePersistenceAutoConfiguration {
 
   /**

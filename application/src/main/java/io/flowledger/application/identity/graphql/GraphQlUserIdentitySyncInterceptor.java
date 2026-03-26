@@ -4,7 +4,6 @@ import io.flowledger.application.identity.event.UserIdentitySyncEvent;
 import io.flowledger.application.identity.model.UserIdentityPayload;
 import io.flowledger.core.auth.AppAuthProperties;
 import io.flowledger.core.auth.AppAuthProperties.AuthMode;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,11 +17,14 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
+
 /**
  * Publishes a user identity synchronization event for GraphQL requests.
  */
 @Component
 @RequiredArgsConstructor
+@Deprecated(forRemoval = true) // Migrate to use standard spring security
 public class GraphQlUserIdentitySyncInterceptor implements WebGraphQlInterceptor {
 
   private static final String CLAIM_SUBJECT = "sub";

@@ -20,7 +20,9 @@ configurations {
 
 dependencies {
   implementation project(':domain')
+  implementation project(':platform:graphql')
   implementation project(':platform:rbac')
+  implementation project(':platform:query')
   implementation libs.spring.boot.starter
   implementation libs.spring.boot.starter.web
   implementation libs.spring.boot.starter.security
@@ -29,6 +31,8 @@ dependencies {
   implementation libs.spring.boot.starter.cache
   implementation libs.spring.boot.starter.data.jpa
   implementation libs.spring.tx
+
+  runtimeOnly libs.postgresql
 
   compileOnly libs.lombok
   annotationProcessor libs.lombok

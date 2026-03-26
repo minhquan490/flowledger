@@ -17,7 +17,6 @@ import jakarta.persistence.PersistenceContext;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ import java.util.function.Predicate;
 @Getter
 @Component
 @RequiredArgsConstructor(access = AccessLevel.PUBLIC)
-@ConditionalOnMissingBean(BlazeQueryBuilder.class)
 public class BlazeQueryBuilder {
   private final CriteriaBuilderFactory criteriaBuilderFactory;
   private final List<BlazeQueryBuilderExtension> extensions;

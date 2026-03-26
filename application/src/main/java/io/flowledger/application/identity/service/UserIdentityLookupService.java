@@ -8,18 +8,18 @@ import io.flowledger.domain.identity.aggregate.User;
 import io.flowledger.domain.identity.aggregate.UserStatus;
 import io.flowledger.domain.identity.view.UserView;
 import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
 
 /**
  * Resolves user identifiers from identity attributes.
  */
 @Service
-@RequiredArgsConstructor
 public class UserIdentityLookupService {
 
   private static final String USER_ID_FIELD = "id";
@@ -29,6 +29,11 @@ public class UserIdentityLookupService {
 
   private final BlazeQueryBuilder blazeQueryBuilder;
   private final EntityViewManager entityViewManager;
+
+  public UserIdentityLookupService(@Lazy BlazeQueryBuilder blazeQueryBuilder, EntityViewManager entityViewManager) {
+    this.blazeQueryBuilder = blazeQueryBuilder;
+    this.entityViewManager = entityViewManager;
+  }
 
   /**
    * Finds a user identifier by email.

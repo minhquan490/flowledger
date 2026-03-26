@@ -4,7 +4,6 @@ import com.blazebit.persistence.view.Mapping;
 import io.flowledger.platform.query.QuerySystemException;
 import io.flowledger.platform.query.mapping.MappingExpressionResolver;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,6 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-@ConditionalOnMissingBean(BlazeMappingResolver.class)
 public class BlazeMappingResolver {
   private static final String DUPLICATE_MAPPING_ERROR =
       "Each view method must declare at most one query annotation.";

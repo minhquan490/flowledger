@@ -34,6 +34,7 @@ dependencies {
 
   runtimeOnly libs.blaze.core.impl
   runtimeOnly libs.blaze.integration.hibernate
+  runtimeOnly libs.blaze.integration.spring
   runtimeOnly libs.blaze.entity.view.impl
   runtimeOnly libs.legacy.persistence
 

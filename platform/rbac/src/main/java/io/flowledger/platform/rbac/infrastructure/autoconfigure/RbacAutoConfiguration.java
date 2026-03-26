@@ -67,7 +67,7 @@ public class RbacAutoConfiguration {
    * @return the resource synchronizer
    */
   @Bean
-  @ConditionalOnBean({BlazeGraphQlModelRegistry.class, BlazeQueryBuilder.class, EntityViewManager.class, EntityManagerFactory.class})
+  @ConditionalOnMissingBean
   public RbacResourceSynchronizer rbacResourceSynchronizer(
       BlazeGraphQlModelRegistry modelRegistry,
       BlazeQueryBuilder blazeQueryBuilder,
