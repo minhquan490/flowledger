@@ -13,3 +13,5 @@ databaseChangeLog:
       file: db/changelog/changes/006-rbac-remove-system-managed.yaml
   - include:
       file: db/changelog/changes/007-rbac-drop-legacy-field-permissions.yaml
+  - include:
+      file: db/changelog/changes/008-user-name-fields.yaml

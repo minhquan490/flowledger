@@ -14,7 +14,6 @@ liquibase = "4.29.2"
 postgresql = "42.7.3"
 spring-tx = "7.0.5"
 spring-orm = "7.0.5"
-jackson = "2.17.2"
 
 [libraries]
 spring-boot-starter = { group = "org.springframework.boot", name = "spring-boot-starter", version.ref = "spring-boot" }
@@ -47,8 +46,6 @@ liquibase-core = { group = "org.liquibase", name = "liquibase-core", version.ref
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
 spring-tx = { group = "org.springframework", name = "spring-tx", version.ref = "spring-tx" }
 spring-orm = { group = "org.springframework", name = "spring-orm", version.ref = "spring-orm" }
-jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson" }
-jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

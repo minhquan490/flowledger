@@ -32,6 +32,20 @@ public interface UserView {
   String getEmail();
 
   /**
+   * Returns the user's first name.
+   *
+   * @return the first name
+   */
+  String getFirstName();
+
+  /**
+   * Returns the user's last name.
+   *
+   * @return the last name
+   */
+  String getLastName();
+
+  /**
    * Returns the user status.
    *
    * @return the user status

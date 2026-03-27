@@ -1,6 +1,6 @@
 package io.flowledger.platform.rbac.domain.permission.validator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.flowledger.core.web.HttpStatusCodes;
 import io.flowledger.platform.graphql.application.GraphQlValidationException;
 import io.flowledger.platform.graphql.application.JpaSchemaGraphQlMutationPayloadValidator;

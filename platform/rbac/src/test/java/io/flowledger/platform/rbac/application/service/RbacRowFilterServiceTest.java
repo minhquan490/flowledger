@@ -5,7 +5,7 @@ import com.blazebit.persistence.CriteriaBuilderFactory;
 import com.blazebit.persistence.RestrictionBuilder;
 import com.blazebit.persistence.WhereAndBuilder;
 import com.blazebit.persistence.WhereOrBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
 import io.flowledger.platform.query.blaze.filter.BlazeFilterOperators;
 import io.flowledger.platform.query.blaze.filter.LogicalOperator;

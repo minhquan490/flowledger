@@ -1,7 +1,5 @@
 package io.flowledger.platform.rbac.application.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.flowledger.platform.graphql.application.GraphQlInternalException;
 import io.flowledger.platform.query.blaze.BlazeQueryBuilder;
 import io.flowledger.platform.query.blaze.filter.BlazeFilterSyntax;
 import io.flowledger.platform.query.blaze.filter.LogicalOperator;
@@ -13,8 +11,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -88,12 +86,8 @@ public class RbacRowFilterService {
     if (condition == null || condition.isBlank()) {
       return Map.of();
     }
-    try {
-      RbacRowConditionJson rowCondition = objectMapper.readValue(condition, RbacRowConditionJson.class);
-      return toBlazeFilters(rowCondition);
-    } catch (IOException ex) {
-      throw new GraphQlInternalException("Failed to parse RBAC row filter condition.", ex);
-    }
+    RbacRowConditionJson rowCondition = objectMapper.readValue(condition, RbacRowConditionJson.class);
+    return toBlazeFilters(rowCondition);
   }
 
   /**

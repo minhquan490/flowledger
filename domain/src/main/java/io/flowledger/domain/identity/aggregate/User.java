@@ -28,6 +28,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class User {
   public static final String TABLE_NAME = "users";
+  public static final int NAME_LENGTH = 150;
 
   @Id
   @GeneratedValue
@@ -35,6 +36,12 @@ public class User {
 
   @Column(name = "email", nullable = false, unique = true, length = 320)
   private String email;
+
+  @Column(name = "first_name", length = NAME_LENGTH)
+  private String firstName;
+
+  @Column(name = "last_name", length = NAME_LENGTH)
+  private String lastName;
 
   @Column(name = "status", nullable = false, length = 50)
   @Enumerated(EnumType.STRING)

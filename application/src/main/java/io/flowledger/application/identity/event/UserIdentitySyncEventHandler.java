@@ -1,6 +1,5 @@
-package io.flowledger.application.identity.listener;
+package io.flowledger.application.identity.event;
 
-import io.flowledger.application.identity.event.UserIdentitySyncEvent;
 import io.flowledger.application.identity.service.UserIdentitySyncService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;

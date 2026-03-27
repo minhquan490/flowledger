@@ -1,6 +1,7 @@
 package io.flowledger.application.identity.rbac;
 
 import io.flowledger.application.identity.service.UserIdentityLookupService;
+import io.flowledger.core.security.UnAuthenticationException;
 import io.flowledger.platform.rbac.application.RbacSubjectProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -27,14 +28,14 @@ public class JwtRbacSubjectProvider implements RbacSubjectProvider {
    * Resolves the current subject identifier from the JWT claims.
    *
    * @return the current subject identifier if available
-   * @throws io.flowledger.core.auth.UnAuthenticationException when the subject identifier cannot be resolved
+   * @throws UnAuthenticationException when the subject identifier cannot be resolved
    */
   @Override
   public Optional<UUID> currentSubjectId() {
     Optional<UUID> subjectId = resolveJwtAuthentication()
         .flatMap(this::resolveSubjectId);
     if (subjectId.isEmpty()) {
-      throw new io.flowledger.core.auth.UnAuthenticationException("Unable to resolve RBAC subject from JWT.");
+      throw new UnAuthenticationException("Unable to resolve RBAC subject from JWT.");
     }
     return subjectId;
   }

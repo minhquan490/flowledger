@@ -1,6 +1,6 @@
 package io.flowledger.platform.rbac.domain.role.validator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.flowledger.platform.graphql.application.GraphQlValidationException;
 import io.flowledger.platform.rbac.domain.permission.validator.RbacRoleRowConditionMutationViewPayloadValidator;
 import org.junit.jupiter.api.Test;

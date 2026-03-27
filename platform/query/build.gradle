@@ -27,7 +27,6 @@ dependencies {
   api libs.javassist
   api libs.jakarta.persistence
   api libs.spring.tx
-  api libs.jackson.databind
 
   compileOnly libs.lombok
   annotationProcessor libs.lombok

@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-add-user-name-fields
+      author: codex
+      preConditions:
+        - onFail: MARK_RAN
+          onError: MARK_RAN
+          sqlCheck:
+            expectedResult: "1"
+            sql: "select 1"
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: first_name
+                  type: varchar(150)
+              - column:
+                  name: last_name
+                  type: varchar(150)

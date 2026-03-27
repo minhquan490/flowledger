@@ -1,12 +1,19 @@
 app:
-  auth:
+  security:
     mode: keycloak
     keycloak:
       realm: ${KEYCLOAK_REALM:flowledger}
       auth-server-url: ${KEYCLOAK_URL:http://localhost:8080}
       client-id: ${KEYCLOAK_CLIENT_ID:flowledger-app}
       client-secret: ${KEYCLOAK_CLIENT_SECRET:}
-      issuer-uri: ${KEYCLOAK_ISSUER_URI:${app.auth.keycloak.auth-server-url}/realms/${app.auth.keycloak.realm}}
+      issuer-uri: ${KEYCLOAK_ISSUER_URI:${app.security.keycloak.auth-server-url}/realms/${app.security.keycloak.realm}}
+    cors:
+      enabled: true
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:}
+      allowed-methods: ${CORS_ALLOWED_METHODS:}
+      allowed-headers: ${CORS_ALLOWED_HEADERS:}
+      allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+      max-age: ${CORS_MAX_AGE:1800}
   rbac:
     enabled: true
 
@@ -15,7 +22,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${app.auth.keycloak.issuer-uri}
+          issuer-uri: ${app.security.keycloak.issuer-uri}
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:flowledger}
     username: ${DB_USERNAME:postgres}

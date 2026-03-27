@@ -5,7 +5,7 @@ import com.blazebit.persistence.spi.CriteriaBuilderConfiguration;
 import com.blazebit.persistence.spi.CriteriaBuilderConfigurationProvider;
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.EntityViewManager;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.flowledger.core.boot.ClasspathScanner;
 import io.flowledger.platform.graphql.domain.GraphQlModel;
 import io.flowledger.platform.graphql.infrastructure.autoconfigure.CoreGraphQlAutoConfiguration;

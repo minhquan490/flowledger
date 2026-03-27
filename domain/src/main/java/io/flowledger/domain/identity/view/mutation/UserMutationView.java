@@ -31,6 +31,20 @@ public interface UserMutationView extends UserView {
   void setEmail(String email);
 
   /**
+   * Sets the user's first name.
+   *
+   * @param firstName the first name
+   */
+  void setFirstName(String firstName);
+
+  /**
+   * Sets the user's last name.
+   *
+   * @param lastName the last name
+   */
+  void setLastName(String lastName);
+
+  /**
    * Sets the user status.
    *
    * @param status the status

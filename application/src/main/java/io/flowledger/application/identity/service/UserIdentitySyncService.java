@@ -36,25 +36,28 @@ public class UserIdentitySyncService {
     Instant now = Instant.now();
     Optional<UUID> existingUserId = userIdentityLookupService.findUserIdByEmail(payload.getEmail());
     if (existingUserId.isPresent()) {
-      updateExistingUser(existingUserId.get(), now);
+      updateExistingUser(existingUserId.get(), payload, now);
       return;
     }
 
-    createNewUser(payload.getEmail(), now);
+    createNewUser(payload, now);
   }
 
   /**
    * Updates timestamps and status for an existing user.
    *
    * @param userId the user identifier to update
+   * @param payload the identity payload
    * @param now the timestamp to apply
    */
-  private void updateExistingUser(UUID userId, Instant now) {
+  private void updateExistingUser(UUID userId, UserIdentityPayload payload, Instant now) {
     UserMutationView user = entityViewManager.find(entityManager, UserMutationView.class, userId);
     if (user == null) {
       throw new IllegalStateException("User not found for id " + userId);
     }
     user.setStatus(STATUS_ACTIVE);
+    applyOptionalValue(payload.getFirstName(), user::setFirstName);
+    applyOptionalValue(payload.getLastName(), user::setLastName);
     user.setUpdatedAt(now);
     entityViewManager.save(entityManager, user);
   }
@@ -62,15 +65,27 @@ public class UserIdentitySyncService {
   /**
    * Creates a new user mutation view for the given email.
    *
-   * @param email the user email
+   * @param payload the identity payload
    * @param now the timestamp to apply
    */
-  private void createNewUser(String email, Instant now) {
+  private void createNewUser(UserIdentityPayload payload, Instant now) {
     UserMutationView user = entityViewManager.create(UserMutationView.class);
-    user.setEmail(email);
+    user.setEmail(payload.getEmail());
     user.setStatus(STATUS_ACTIVE);
+    applyOptionalValue(payload.getFirstName(), user::setFirstName);
+    applyOptionalValue(payload.getLastName(), user::setLastName);
     user.setCreatedAt(now);
     user.setUpdatedAt(now);
     entityViewManager.save(entityManager, user);
+  }
+
+  /**
+   * Applies an optional value to the provided setter when present.
+   *
+   * @param value the optional value
+   * @param setter the setter to apply
+   */
+  private void applyOptionalValue(Optional<String> value, java.util.function.Consumer<String> setter) {
+    value.filter(candidate -> !candidate.isBlank()).ifPresent(setter);
   }
 }

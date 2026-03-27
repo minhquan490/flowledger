@@ -1,4 +1,4 @@
-package io.flowledger.core.auth;
+package io.flowledger.core.security;
 
 /**
  * Exception thrown when authentication details are missing or invalid.
